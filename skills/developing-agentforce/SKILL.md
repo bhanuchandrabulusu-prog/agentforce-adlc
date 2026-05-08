@@ -32,7 +32,7 @@ Identify user intent from task descriptions. ALWAYS read indicated reference fil
 
 ## Rules That Always Apply
 
-1. **Always `--json`.** ALWAYS include `--json` on EVERY `sf` CLI command. Do NOT pipe `sf` CLI output through `jq` or `2>/dev/null` to read or filter results — read the full JSON response directly. LLMs parse JSON natively, and `jq` filtering hides fields you may need for the next step. **Carve-outs:** `jq` is fine for (a) extracting a single value into a shell variable for use in a subsequent command (e.g., `ORG_URL=$(sf org display --json | jq -r '.result.instanceUrl')` when you need the URL as a `curl` target), and (b) parsing `curl` response bodies, since `curl` does not have a `--json` mode that returns structured data the LLM can read.
+1. **Always `--json`.** ALWAYS include `--json` on EVERY `sf` CLI command. Do NOT pipe CLI output through `jq` or `2>/dev/null`. Read the full JSON response directly — LLMs parse JSON natively.
 
 2. **Verify target org.** Before any org interaction, run `sf config get target-org --json` to confirm a target org is set. If none configured, ask the user to set one with `sf config set target-org <alias>`.
 

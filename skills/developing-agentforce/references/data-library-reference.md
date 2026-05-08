@@ -24,11 +24,11 @@ After Step 7 succeeds, hand the parent skill these values:
 
 ## Prerequisites
 
-`sf` (Salesforce CLI) and `jq` must be on PATH. Both fail in confusing ways (empty tokens, malformed URLs, 401s) when missing. STOP if either is missing — do not proceed.
+`sf` (Salesforce CLI) and `curl` must be on PATH. Both fail in confusing ways (empty tokens, malformed URLs, 401s) when missing. STOP if either is missing — do not proceed.
 
 ```bash
 command -v sf >/dev/null 2>&1 || echo "MISSING: sf (Salesforce CLI)"
-command -v jq >/dev/null 2>&1 || echo "MISSING: jq (JSON parser)"
+command -v curl >/dev/null 2>&1 || echo "MISSING: curl"
 ```
 
 If `sf` is missing, do NOT auto-install. Offer:
@@ -36,7 +36,7 @@ If `sf` is missing, do NOT auto-install. Offer:
 - npm (Node 20+): `npm install -g @salesforce/cli`
 - `.pkg` installer: https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm
 
-If `jq` is missing: `brew install jq` (macOS) or `sudo apt-get install jq` (Debian/Ubuntu).
+`curl` ships with macOS and most Linux distros; if missing, `brew install curl` or use the system package manager.
 
 Confirm the target org is authenticated:
 
@@ -71,14 +71,25 @@ sf data query --target-org "$TARGET_ORG" --json -q "SELECT COUNT() FROM DataKnow
 
 ### 0b. ADL service health check — `GET /einstein/data-libraries`
 
-DC is provisioned. Confirm the ADL service itself is reachable on this org before doing any provisioning work:
+DC is provisioned. Confirm the ADL service itself is reachable on this org before doing any provisioning work.
+
+First read the org's `instanceUrl` and `accessToken` from `sf org display`:
 
 ```bash
-ORG_URL=$(sf org display --target-org "$TARGET_ORG" --json | jq -r '.result.instanceUrl')
-ACCESS_TOKEN=$(sf org display --target-org "$TARGET_ORG" --json | jq -r '.result.accessToken')
+sf org display --target-org "$TARGET_ORG" --json
+```
+
+Read the JSON response, copy `result.instanceUrl` and `result.accessToken`, and use them as `ORG_URL` and `ACCESS_TOKEN` in the next command. Substitute the literal values directly — do not pipe the response through any filter:
+
+```bash
 curl -s -o /tmp/adl_health.json -w "%{http_code}\n" \
-  "${ORG_URL}/services/data/v66.0/einstein/data-libraries" \
-  -H "Authorization: Bearer $ACCESS_TOKEN"
+  "<ORG_URL>/services/data/v66.0/einstein/data-libraries" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Then read `/tmp/adl_health.json` directly — it's the response body the LLM can parse natively:
+
+```bash
 cat /tmp/adl_health.json
 ```
 
@@ -140,17 +151,25 @@ cat /tmp/adl_health.json
 
 ## Variables
 
-Resolve these once after Step 0 passes (`TARGET_ORG` was already set in Prerequisites):
+Resolve these once after Step 0 passes (`TARGET_ORG` was already set in Prerequisites). For `ORG_URL` and `ACCESS_TOKEN`, run `sf org display --target-org "$TARGET_ORG" --json`, read the JSON response, and substitute the literal values for `<ORG_URL>` and `<ACCESS_TOKEN>` in every subsequent `curl` command.
 
 ```bash
 FILE_NAME="<absolute-path-to-file>"
 ADL_DevName="<snake_case_unique>"     # e.g. MyLib_0424_ab3
 ADL_Name="<human readable label>"
-ORG_URL=$(sf org display --target-org "$TARGET_ORG" --json | jq -r '.result.instanceUrl')
-ACCESS_TOKEN=$(sf org display --target-org "$TARGET_ORG" --json | jq -r '.result.accessToken')
+# From sf org display --target-org "$TARGET_ORG" --json:
+#   ORG_URL      = result.instanceUrl     (e.g. https://my-org.my.salesforce.com)
+#   ACCESS_TOKEN = result.accessToken     (begins with 00D...)
 ```
 
-`ACCESS_TOKEN` expires. If any later step returns `INVALID_SESSION_ID`, re-run the token line.
+If you prefer shell variables for readability, paste the literal values:
+
+```bash
+ORG_URL="<paste result.instanceUrl from sf org display --json>"
+ACCESS_TOKEN="<paste result.accessToken from sf org display --json>"
+```
+
+`ACCESS_TOKEN` expires. If any later step returns `INVALID_SESSION_ID`, re-run `sf org display --json` and re-paste the new token.
 
 All endpoints below use `v66.0`. Adjust if the org requires a different API version.
 
@@ -158,8 +177,11 @@ Confirm the file to upload exists and is a supported type (PDF, DOCX, TXT, etc.)
 
 ## Step 1 — Create the library
 
+Write the response to a file so you can read it directly:
+
 ```bash
-curl -s -X POST "${ORG_URL}/services/data/v66.0/einstein/data-libraries" \
+curl -s -o /tmp/adl_create.json -X POST \
+  "${ORG_URL}/services/data/v66.0/einstein/data-libraries" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{
@@ -167,11 +189,13 @@ curl -s -X POST "${ORG_URL}/services/data/v66.0/einstein/data-libraries" \
     \"developerName\": \"${ADL_DevName}\",
     \"groundingSource\": { \"sourceType\": \"SFDRIVE\" }
   }"
+cat /tmp/adl_create.json
 ```
 
-Capture `libraryId` — every subsequent call needs it:
+Read the response and capture `libraryId` — every subsequent call needs it. Set it as a shell variable using the literal value:
+
 ```bash
-LIBRARY_ID=$(... | jq -r '.libraryId')
+LIBRARY_ID="<paste libraryId from the response>"
 ```
 
 ## Step 2 — Wait for upload readiness
@@ -188,32 +212,41 @@ The `waitMaxTime` query param lets the server long-poll — one call is usually 
 
 ## Step 3 — Get a presigned upload URL
 
+Write the response to a file:
+
 ```bash
 FILE_BASENAME=$(basename "$FILE_NAME")
-curl -s -X POST \
+curl -s -o /tmp/adl_presign.json -X POST \
   "${ORG_URL}/services/data/v66.0/einstein/data-libraries/$LIBRARY_ID/file-upload-urls" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{ \"files\": [ { \"fileName\": \"${FILE_BASENAME}\" } ] }"
+cat /tmp/adl_presign.json
 ```
 
-From the response capture:
-- `uploadUrls[0].uploadUrl` → `PRESIGNED_URL`
-- `uploadUrls[0].filePath` → `FILE_PATH_S3`
-- `uploadUrls[0].headers`   → header map to forward on the PUT
+From the response read these fields and remember them — Step 4 needs all of them, written verbatim:
+
+- `uploadUrls[0].uploadUrl` — the presigned S3 URL (will be the PUT target)
+- `uploadUrls[0].filePath` — the S3 path (Step 5 needs this; capture it as a shell variable now)
+- `uploadUrls[0].headers` — a JSON object of header name → header value pairs that S3 requires on the PUT
+
+Capture the file path for later steps:
+
+```bash
+FILE_PATH_S3="<paste uploadUrls[0].filePath from the response>"
+```
 
 ## Step 4 — Upload the file to S3
 
-The presigned URL is on S3, not Salesforce. Forward every header from step 3 exactly.
+The presigned URL is on S3, not Salesforce. Forward every header from Step 3's `headers` object verbatim — drop or reorder one and S3 returns 403.
+
+Construct the curl command by reading the headers object from Step 3's response and emitting one `-H "<name>: <value>"` flag per entry:
 
 ```bash
-UPLOAD_HEADERS=()
-while IFS='=' read -r key value; do
-  UPLOAD_HEADERS+=(-H "$key: $value")
-done < <(echo "$STEP3_RESPONSE" | jq -r '.uploadUrls[0].headers | to_entries[] | "\(.key)=\(.value)"')
-
-curl -X PUT "$PRESIGNED_URL" \
-  "${UPLOAD_HEADERS[@]}" \
+curl -X PUT "<paste uploadUrls[0].uploadUrl from Step 3>" \
+  -H "<paste header 1 name>: <paste header 1 value>" \
+  -H "<paste header 2 name>: <paste header 2 value>" \
+  -H "<...one -H per header in the headers object...>" \
   --data-binary @"$FILE_NAME" \
   -w "\nHTTP Status: %{http_code}\n"
 ```
@@ -242,10 +275,13 @@ Response returns `status: IN_PROGRESS`. The pipeline chunks, embeds, and builds 
 **The library is usable for grounding as soon as `retrieverId` is non-null.** Do not block on the top-level `indexingStatus.status` flag — it can lag behind the retriever by 10–30 minutes (sometimes longer for larger files), even after all sub-stages report `SUCCESS`. Poll the detail endpoint, not `/status`:
 
 ```bash
-curl -s \
+curl -s -o /tmp/adl_detail.json \
   "${ORG_URL}/services/data/v66.0/einstein/data-libraries/$LIBRARY_ID" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" | jq '{status, retrieverId, retrieverLabel, groundingFileRefs}'
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+cat /tmp/adl_detail.json
 ```
+
+Read the response and check `status`, `retrieverId`, `retrieverLabel`, and `groundingFileRefs`.
 
 Response (excerpt):
 ```json
@@ -264,9 +300,10 @@ Response (excerpt):
 If you also want the granular sub-stage view for debugging:
 
 ```bash
-curl -s \
+curl -s -o /tmp/adl_status.json \
   "${ORG_URL}/services/data/v66.0/einstein/data-libraries/$LIBRARY_ID/status" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" | jq '.'
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+cat /tmp/adl_status.json
 ```
 
 Sub-stage shape (for reference):
@@ -288,12 +325,13 @@ All four sub-stages can read `SUCCESS` while the top-level `status` still says `
 
 ## Step 7 — Confirm the library is populated
 
-The Step 6 response already gave you `retrieverId` and `groundingFileRefs`. Sanity-check that the file you uploaded appears with the expected size:
+The Step 6 response already gave you `retrieverId` and `groundingFileRefs`. Sanity-check that the file you uploaded appears with the expected size by reading `/tmp/adl_detail.json` from Step 6 — focus on the `groundingFileRefs` array. If you want a fresh fetch:
 
 ```bash
-curl -s \
+curl -s -o /tmp/adl_detail.json \
   "${ORG_URL}/services/data/v66.0/einstein/data-libraries/$LIBRARY_ID" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" | jq '.groundingFileRefs'
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+cat /tmp/adl_detail.json
 ```
 
 At this point the parent skill receives:
@@ -502,7 +540,7 @@ How to run:
    - The **path** exists (e.g. `/einstein/data-libraries/{libraryId}/upload-readiness`, `/files`, `/indexing`).
    - The **HTTP method** matches.
    - Required **request body fields** are unchanged (`masterLabel`, `developerName`, `groundingSource.sourceType`, `uploadedFiles[].filePath`, `uploadedFiles[].fileSize`).
-   - **Response field names** still match the `jq` extractions (`libraryId`, `uploadUrls[].uploadUrl`, `indexingStatus.status`, `filesAccepted`, `groundingFileRefs`, `retrieverId`).
+   - **Response field names** still match the fields this reference reads (`libraryId`, `uploadUrls[].uploadUrl`, `uploadUrls[].filePath`, `uploadUrls[].headers`, `indexingStatus.status`, `filesAccepted`, `groundingFileRefs`, `retrieverId`).
    - The **API version** in `servers.url` / `info.version` still matches the `v66.0` hardcoded above. If bumped, update the version in every `curl`.
 
 4. If any mismatch is found, STOP and tell the user which step is out of date and what the spec now says. Do not silently adapt.
