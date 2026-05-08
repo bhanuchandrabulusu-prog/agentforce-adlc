@@ -46,6 +46,14 @@ sf org display --target-org <org-alias> --json
 
 If auth is missing: `sf org login web --alias <alias> --instance-url https://<your-org>.my.salesforce.com`. Do not guess the alias — ask if unspecified.
 
+Set the target-org alias as a shell variable now — every command from Step 0 onward references it:
+
+```bash
+TARGET_ORG="<org-alias>"
+```
+
+Substitute the user's real alias before continuing.
+
 ## Step 0 — Verify Data Cloud is provisioned and ADL is reachable
 
 ADL requires both (a) Data Cloud provisioning to be complete and (b) the ADL service routes to be healthy. The two are independent in practice — orgs can have DC provisioned but a broken ADL service. Run both checks; do not collapse them.
@@ -132,10 +140,9 @@ cat /tmp/adl_health.json
 
 ## Variables
 
-Resolve these once at the start (after Step 0 passes):
+Resolve these once after Step 0 passes (`TARGET_ORG` was already set in Prerequisites):
 
 ```bash
-TARGET_ORG="<org-alias>"
 FILE_NAME="<absolute-path-to-file>"
 ADL_DevName="<snake_case_unique>"     # e.g. MyLib_0424_ab3
 ADL_Name="<human readable label>"

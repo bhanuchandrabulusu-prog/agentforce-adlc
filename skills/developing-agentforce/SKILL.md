@@ -32,7 +32,7 @@ Identify user intent from task descriptions. ALWAYS read indicated reference fil
 
 ## Rules That Always Apply
 
-1. **Always `--json`.** ALWAYS include `--json` on EVERY `sf` CLI command. Do NOT pipe CLI output through `jq` or `2>/dev/null`. Read the full JSON response directly — LLMs parse JSON natively.
+1. **Always `--json`.** ALWAYS include `--json` on EVERY `sf` CLI command. Do NOT pipe `sf` CLI output through `jq` or `2>/dev/null` to read or filter results — read the full JSON response directly. LLMs parse JSON natively, and `jq` filtering hides fields you may need for the next step. **Carve-outs:** `jq` is fine for (a) extracting a single value into a shell variable for use in a subsequent command (e.g., `ORG_URL=$(sf org display --json | jq -r '.result.instanceUrl')` when you need the URL as a `curl` target), and (b) parsing `curl` response bodies, since `curl` does not have a `--json` mode that returns structured data the LLM can read.
 
 2. **Verify target org.** Before any org interaction, run `sf config get target-org --json` to confirm a target org is set. If none configured, ask the user to set one with `sf config set target-org <alias>`.
 
@@ -78,7 +78,7 @@ Read [CLI for Agents](references/salesforce-cli-for-agents.md) for exact command
    `sf agent generate authoring-bundle --json --no-spec --name "<Label>" --api-name <Developer_Name>`
 5. **Configure knowledge grounding (optional)** — Ask the user: "Will this agent answer questions from a document corpus (PDF/DOCX/TXT)?"
    - If **no**, skip this step.
-   - If **yes**, read [Data Library Reference](references/data-library-reference.md). Run the Step 0 preflight: `SELECT COUNT() FROM DataKnowledgeSpace` (DC provisioned check), then `GET /einstein/data-libraries` (ADL service health check). If DC is not provisioned, present the A/B choice from that reference. If DC is provisioned but the ADL service returns `400 INTERNAL_ERROR`, surface the "DC up, ADL broken" path and skip grounding for this run. If both checks pass, provision a SFDRIVE Agentforce Data Library via Steps 1–7. Capture `libraryId` and `retrieverId`. Compute `rag_feature_config_id = "ARFPC_<libraryId>"`. Pass these into Step 6.
+   - If **yes**, read [Data Library Reference](references/data-library-reference.md). Run the Step 0 preflight: `SELECT COUNT() FROM DataKnowledgeSpace` (DC provisioned check), then `GET /einstein/data-libraries` (ADL service health check). If DC is not provisioned, present the A/B choice from that reference. If DC is provisioned but the ADL service returns `400 INTERNAL_ERROR`, surface the "DC up, ADL broken" path and skip grounding for this run. If both checks pass, run the create POST (reference Step 1) to capture `libraryId`. Compute `rag_feature_config_id = "ARFPC_<libraryId>"` from the `libraryId` alone — that's enough to author the bundle. Then start the upload + indexing flow (reference Steps 2–6) **in the background** while you continue to Step 6 (Write code). Per Rule 5, do not block authoring on async indexing; `retrieverId` is only needed for runtime queries (gated in Step 9).
    Do NOT provision an ADL preemptively — it consumes Data Cloud quota.
 6. **Write code** — Read [Core Language](references/agent-script-core-language.md) for syntax, block structure, and anti-patterns. Edit generated `.agent` file using reference files and templates. Do not create `.agent` or `bundle-meta.xml` files manually. If Step 5 produced a `libraryId`, include the top-level `knowledge:` block and the `AnswerQuestionsWithKnowledge` action wiring per [Data Library Reference](references/data-library-reference.md), section "Wiring the ADL into Agent Script". The template at `assets/agents/knowledge-grounded.agent` is a copy-modify starting point.
 7. **Validate compilation** —
@@ -90,6 +90,7 @@ Read [CLI for Agents](references/salesforce-cli-for-agents.md) for exact command
    `sf project deploy start --json --metadata ApexClass:<ClassName>`
    ALWAYS fix deploy errors BEFORE generating and deploying next stub.
 9. **Validate behavior** — Read [Validation & Debugging](references/agent-validation-and-debugging.md) for preview workflow and session trace analysis.
+   **If Step 5 provisioned an ADL**, before sending any grounded test utterances confirm the library is queryable: `GET /einstein/data-libraries/$LIBRARY_ID` should return a non-null `retrieverId` ([Data Library Reference](references/data-library-reference.md), Step 6). If still null, wait and re-poll — do not preview yet, the agent will return empty `knowledgeSummary` and the anti-hallucination guard will refuse on every utterance.
    `sf agent preview start --json --use-live-actions --authoring-bundle <Developer_Name>`
    If actions query data, ground test utterances with:
    `sf data query --json -q "SELECT <Relevant_Fields> FROM <SObject> LIMIT 100"`
@@ -180,8 +181,8 @@ Read [CLI for Agents](references/salesforce-cli-for-agents.md) for exact command
 2. **Update Agent Spec** — Read [Design & Agent Spec](references/agent-design-and-spec-creation.md) for flow control patterns and backing logic analysis. Modify Agent Spec to reflect intended changes. For new actions, always ask if you should scan for existing backing logic. Unless instructed otherwise, scan by reading `sfdx-project.json` to identify package directories, then search each for `@InvocableMethod` in `classes/`, `AutoLaunchedFlow` in `flows/`, and template metadata in `promptTemplates/`. Mark matches `EXISTS`; unmatched actions `NEEDS STUB`. **Always save updated Agent Spec as file.**
 3. **STOP for user approval of updated Agent Spec.** Present to user. Ask for approval or feedback. **Do not proceed** without approval. Once approved, proceed without stopping unless a step fails.
 4. **Configure knowledge grounding (optional)** — If the modification involves adding, replacing, or removing knowledge grounding, ask: "Will this agent answer questions from a document corpus (PDF/DOCX/TXT)?"
-   - If the `.agent` already has a `knowledge:` block with a populated `rag_feature_config_id`, confirm the existing library is still indexed (`GET /einstein/data-libraries/<libraryId>` shows `retrieverId`) and reuse it. Skip provisioning.
-   - If a new ADL is needed, follow the same flow as the create workflow: read [Data Library Reference](references/data-library-reference.md), run the Data Cloud preflight, and (if DC is ready) provision via Steps 1–7. Capture `libraryId`, `retrieverId`, and compute `rag_feature_config_id = "ARFPC_<libraryId>"`.
+   - If the `.agent` already has a `knowledge:` block with a populated `rag_feature_config_id`, reuse it. Skip provisioning. (No need to confirm `retrieverId` here — that gate moves to Step 8.)
+   - If a new ADL is needed, follow the same flow as the create workflow: read [Data Library Reference](references/data-library-reference.md), run the Data Cloud preflight, and (if DC is ready) run Step 1 to capture `libraryId`. Compute `rag_feature_config_id = "ARFPC_<libraryId>"` from `libraryId` alone — that's enough to author the bundle. Start the upload + indexing flow (reference Steps 2–6) **in the background** while you continue to Step 5 (Edit code). Per Rule 5, do not block on async indexing.
    - If grounding is not part of the modification, skip this step.
 5. **Edit code** — Read [Core Language](references/agent-script-core-language.md) for syntax and anti-patterns. Edit `.agent` file to implement approved changes. If Step 4 produced a `libraryId`, include or update the `knowledge:` block and the `AnswerQuestionsWithKnowledge` action per [Data Library Reference](references/data-library-reference.md).
 6. **Validate compilation** —
@@ -193,6 +194,7 @@ Read [CLI for Agents](references/salesforce-cli-for-agents.md) for exact command
    `sf project deploy start --json --metadata ApexClass:<ClassName>`
    ALWAYS fix deploy errors BEFORE generating and deploying next stub. Skip if no new actions added.
 8. **Validate behavior** — Read [Validation & Debugging](references/agent-validation-and-debugging.md) for preview workflow and session trace analysis.
+   **If Step 4 provisioned a new ADL**, before sending any grounded test utterances confirm the library is queryable: `GET /einstein/data-libraries/$LIBRARY_ID` should return a non-null `retrieverId` ([Data Library Reference](references/data-library-reference.md), Step 6). If still null, wait and re-poll — do not preview yet, the agent will return empty `knowledgeSummary` and the anti-hallucination guard will refuse on every utterance.
    `sf agent preview start --json --use-live-actions --authoring-bundle <Developer_Name>`
    If actions query data, ground test utterances with:
    `sf data query --json -q "SELECT <Relevant_Fields> FROM <SObject> LIMIT 100"`
