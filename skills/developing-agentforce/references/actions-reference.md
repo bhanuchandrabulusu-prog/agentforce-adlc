@@ -2,6 +2,9 @@
 
 Complete guide to Agent Actions in Agentforce: Flow, Apex, API actions, and escalation routing.
 
+> Primary reference for action properties, target types, and action wiring.
+> Pair with `feature-validity.md` for utility-vs-target property caveats.
+
 ---
 
 ## Action Properties Reference
@@ -180,7 +183,8 @@ reasoning:
       | To check shipping status, use {!@actions.track_shipment}.
 ```
 
-> See [action-patterns.md](action-patterns.md#2-instruction-action-references) for detailed usage patterns and examples.
+> See [patterns-by-requirement.md](patterns-by-requirement.md) and
+> [architecture-patterns.md](architecture-patterns.md) for pattern selection and usage guidance.
 
 ### Invoking Actions Deterministically with `run`
 
@@ -213,7 +217,7 @@ reasoning:
 
 - Standard Salesforce data operations (CRUD)
 - Business logic that can be expressed in Flow
-- Screen flows for guided user experiences
+- Autolaunched flows for guided logic execution (screen flows are not valid action targets)
 - Approval processes
 
 ### Implementation
@@ -607,6 +611,7 @@ When building agents with external API integrations, follow this order:
 
 ## Related Documentation
 
-- [action-patterns.md](action-patterns.md) — Context-aware descriptions, instruction references, binding strategies
+- [patterns-by-requirement.md](patterns-by-requirement.md) — Requirement-to-pattern selection
 - [action-prompt-templates.md](action-prompt-templates.md) — Prompt template invocation (`generatePromptResponse://`)
-- [fsm-architecture.md](fsm-architecture.md) — FSM design and node patterns
+- [architecture-patterns.md](architecture-patterns.md) — Router-first architecture and transition mechanics
+- [feature-validity.md](feature-validity.md) — Property validity by context (`@utils.transition` vs `target:` actions)

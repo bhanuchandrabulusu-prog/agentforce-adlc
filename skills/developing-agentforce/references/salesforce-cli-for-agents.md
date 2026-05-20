@@ -77,13 +77,13 @@ sf agent validate authoring-bundle --json --api-name Agent_API_Name
 
 ## 4. Deploy
 
-### Deploy Apex, Flow, or other backing logic
+### Deploy Apex, Flow, or other action implementations
 
 ```bash
 sf project deploy start --json --metadata ApexClass:ClassName
 ```
 
-Deploy backing logic BEFORE deploying the AiAuthoringBundle. The bundle's action targets reference these components, and the platform validates they exist during bundle deploy.
+Deploy action implementations BEFORE deploying the AiAuthoringBundle. The bundle's action targets reference these components, and the platform validates they exist during bundle deploy.
 
 ALWAYS deploy each stub class IMMEDIATELY after customizing it. ALWAYS fix deploy errors BEFORE generating and deploying the next stub.
 
@@ -224,7 +224,7 @@ sf agent preview end --json --authoring-bundle Agent_API_Name --session-id SESSI
 sf agent preview start --json --authoring-bundle Agent_API_Name --use-live-actions
 ```
 
-Add `--use-live-actions` to execute real backing logic instead of simulated responses. Live preview executes real Apex, Flows, and Prompt Templates in the org.
+Add `--use-live-actions` to execute real action implementations instead of simulated responses. Live preview executes real Apex, Flows, and Prompt Templates in the org.
 
 ### Anti-pattern: bare preview command
 

@@ -716,7 +716,7 @@ actions:
 - `is_displayable` (boolean) — controls whether output is shown to the customer
 - `complex_data_type_name` — required for complex data types like SObject references (e.g., `"lightning__recordInfoType"`), Apex inner classes, and custom Lightning types. Not needed for simple types like `date`, `integer`, or `datetime` — use the simple type directly.
 
-**Parameter names must exactly match the backing logic interface — including case.** Read the target class before writing the action definition.
+**Parameter names must exactly match the action implementation interface — including case.** Read the target class before writing the action definition.
 
 Given this Apex class:
 

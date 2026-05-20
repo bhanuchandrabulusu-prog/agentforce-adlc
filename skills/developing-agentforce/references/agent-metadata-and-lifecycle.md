@@ -229,14 +229,14 @@ sf data query --json -q "SELECT Username FROM User WHERE Profile.UserLicense.Nam
 `default_agent_user` can be changed after publish, but only while no published version is activated. Deactivate the agent before changing `default_agent_user`, then republish and reactivate.
 ### Two Validation Layers: Compile vs. API Validation
 
-The CLI `sf agent validate authoring-bundle` checks syntax and Agent Script compilation only. It does NOT validate `default_agent_user` or backing logic references.
+The CLI `sf agent validate authoring-bundle` checks syntax and Agent Script compilation only. It does NOT validate `default_agent_user` or action implementation references.
 
-API validation runs during `sf agent publish` and in Agentforce Studio. This is where `default_agent_user` license requirements are checked and backing logic references are fully validated.
+API validation runs during `sf agent publish` and in Agentforce Studio. This is where `default_agent_user` license requirements are checked and action implementation references are fully validated.
 
-The result: A developer can validate successfully and still fail at publish due to invalid `default_agent_user` or missing backing logic.
+The result: A developer can validate successfully and still fail at publish due to invalid `default_agent_user` or missing action implementations.
 ### Deploy Validates Backing Logic via Invocable Action Registry Lookup
 
-When you deploy an `AiAuthoringBundle`, the deployment process validates that every backing logic reference (Apex class, Flow, Prompt Template) resolves to a registered Invocable Action in the org. The referenced class or flow or prompt must exist.
+When you deploy an `AiAuthoringBundle`, the deployment process validates that every action implementation reference (Apex class, Flow, Prompt Template) resolves to a registered Invocable Action in the org. The referenced class, flow, or prompt must exist.
 
 For Apex classes, the class must have an `@InvocableMethod`-annotated method.
 
@@ -371,9 +371,9 @@ sf data query --json -q "SELECT Username, IsActive, Profile.UserLicense.Name FRO
 - `IsActive` is false → reactivate the user or set a different username.
 - `Profile.UserLicense.Name` is not `"Einstein Agent"` → wrong license. Set a user with the Einstein Agent license.
 
-#### 2. Verify all backing logic is deployed
+#### 2. Verify all action implementations are deployed
 
-Every `target` in the `.agent` file must resolve to a registered backing logic component in the org. Redeploy all backing logic:
+Every `target` in the `.agent` file must resolve to a registered implementation component in the org. Redeploy all action implementations:
 
 ```bash
 sf project deploy start --json --metadata ApexClass Flow PromptTemplate

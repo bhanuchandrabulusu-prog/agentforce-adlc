@@ -72,7 +72,7 @@ Summary: 2/3 targets found (66.7%)
 ## Next Steps
 
 - Missing targets: Run scaffold to generate stubs (see `scaffold-reference.md`)
-- All found: Deploy (`sf agent publish authoring-bundle --json --api-name <AgentName> -o <org-alias>`)
+- All found: Continue draft iteration (validate, deploy, preview). Publish/activate only when the user explicitly approves release.
 
 ## Error Handling
 

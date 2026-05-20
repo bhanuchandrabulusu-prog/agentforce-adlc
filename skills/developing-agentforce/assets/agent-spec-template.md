@@ -9,9 +9,20 @@ What domain does it operate in?
 
 Describe the key behavioral rules that govern the agent:
 - What must the agent know before taking action?
-- What backing logic types are used (Apex, Flow, Prompt Template)?
+- What action implementation types are used (Apex, Flow, Prompt Template)?
 - What guardrails apply (off-topic handling, escalation)?
 - What information persists across subagent switches?
+
+## Subagent Posture
+
+For each subagent, specify posture and why:
+
+| Subagent | Posture (scripted/mixed/agentic) | Why this posture? | Deterministic controls (if any) |
+|----------|-----------------------------------|-------------------|-----------------------------------|
+| agent_router | mixed | default router behavior | transition invariants only |
+| example_subagent | agentic | open-ended assistance | none |
+
+Use [references/posture-and-determinism.md](../references/posture-and-determinism.md) for posture rules.
 
 ## Subagent Map
 
@@ -26,7 +37,7 @@ graph TD
     A -->|needs escalation| E[escalation<br/>Subagent]
 ```
 
-Expand the diagram to show actions, gating logic, and variable state changes
+Expand the diagram to show actions, deterministic controls (when needed), and variable state changes
 within each subagent. See the Subagent Map Diagrams reference for conventions.
 
 ## Variables
@@ -35,12 +46,12 @@ within each subagent. See the Subagent Map Diagrams reference for conventions.
   Set by: which action or utility. Read by: which topics for gating or
   conditional instructions.
 
-## Actions & Backing Logic
+## Actions & Implementations
 
 ### action_name (subagent_name subagent)
 
 - **Target:** `apex://ClassName` or `flow://FlowName` or `prompt://PromptTemplateName`
-- **Backing Status:** EXISTS / NEEDS STUB / NEEDS IMPLEMENTATION
+- **Implementation Status:** EXISTS / NEEDS STUB / NEEDS IMPLEMENTATION
 
 #### Inputs
 
@@ -70,16 +81,17 @@ If NEEDS STUB:
 
 Repeat for each action.
 
-## Gating Logic
+## Deterministic Controls (When Needed)
 
 - `action_name` visibility: `available when @variables.variable_name != ""`
   — Rationale for why this gate exists.
 
-List all gating conditions with their rationale.
+Include only controls required by trust, policy, regulation, or observed failures.
 
 ## Architecture Pattern
 
-State the architecture pattern: hub-and-spoke, chain, hybrid, etc.
+Default to router-first architecture. Note any deliberate exceptions.
+State any workflow-local linear flows inside specific subagents.
 Describe the routing strategy and how topics relate to each other.
 
 ## Agent Configuration

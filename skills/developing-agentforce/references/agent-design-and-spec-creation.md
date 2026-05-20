@@ -2,11 +2,11 @@
 
 ## Table of Contents
 
-1. Agent Spec: Structure and Lifecycle
-2. Discovery Questions
+1. Agent Spec: Purpose and Lifecycle
+2. Discovery Questions (Outcome First)
 3. Environment Prerequisites
 4. Subagent Architecture
-5. Mapping Logic to Actions
+5. Mapping Action Implementations
 6. Transition Patterns
 7. Deterministic vs. Subjective Flow Control
 8. Gating Patterns
@@ -14,26 +14,31 @@
 
 ---
 
-## 1. Agent Spec: Structure and Lifecycle
+## 1. Agent Spec: Purpose and Lifecycle
 
-An **Agent Spec** is a structured design document describing an agent's purpose, subagents, actions, state, control flow, and behavioral intent. When creating a new agent, produce the Agent Spec before writing Agent Script code. When comprehending or diagnosing an existing agent, reverse-engineer an Agent Spec from the `.agent` file to make the agent's design explicit.
+An **Agent Spec** is a structured design document describing business outcomes, use
+cases, actions, subagents, state, and control flow. Build the spec before writing
+Agent Script. For existing agents, reverse-engineer the spec from the `.agent`
+file so intent is explicit before changes.
 
 ### What an Agent Spec Contains
 
-- **Purpose & Scope** — what the agent does, in plain language
-- **Behavioral Intent** — what the agent is supposed to achieve (requirements and constraints), not just what the code does
+- **Purpose & Scope** — what business outcome the agent should drive
+- **Behavioral Intent** — what the agent is supposed to achieve (requirements and constraints), not just what code exists
 - **Subagent Map** — a Mermaid flowchart showing all subagents, transitions (with type labels: handoff or delegation), and when transitions occur
-- **Actions & Backing Logic** — each action's name, its backing implementation (Apex class, Flow, Prompt Template), inputs/outputs with visibility decisions, and whether the backing logic exists or needs creation
-- **Variables** — declarations, types, default values, which subagents set/read them, and what gates they control
-- **Gating Logic** — conditions that govern action visibility or instruction evaluation, with rationale for each. Always include this section; if no gating applies, state "No gating required" so reviewers know it was considered, not overlooked.
+- **Actions & Implementations** — each action's name, implementation type (Apex class, Flow, Prompt Template), inputs/outputs, and whether implementation exists or needs creation
+- **Variables** — declarations, types, default values, and which subagents set/read them
+- **Deterministic Controls (when needed)** — only include gating/invariants that are required by trust, policy, regulation, or observed failures
+- **Interaction Style** — brand voice, personality, escalation tone, and response style constraints
+- **Subagent Posture** — scripted, mixed, or agentic posture per subagent with a short justification
 
-### Directional vs. Observational Entries
+### Planned vs. Existing Entries
 
-Agent Spec entries can be directional or observational — both are valid:
+Agent Spec entries can be planned or existing — both are valid:
 
-- **Directional:** "The `confirm_booking` action needs an Apex class `BookingConfirmer` that accepts reservation_id (string), guest_name (string), and returns confirmation_number (string), booking_date (date)." This is a gap you're creating acceptance criteria for.
+- **Planned (placeholder):** "The `confirm_booking` action needs an Apex class `BookingConfirmer` that accepts reservation_id (string), guest_name (string), and returns confirmation_number (string), booking_date (date)." This is a not-yet-implemented requirement.
 
-- **Observational:** "The `fetch_weather` action is backed by Apex class `WeatherService`, invoked via `apex://WeatherService`. Accepts dateToCheck (date), returns maxTemp/minTemp (number)." This documents existing backing logic.
+- **Existing (implemented):** "The `fetch_weather` action uses Apex class `WeatherService`, invoked via `apex://WeatherService`. Accepts dateToCheck (date), returns maxTemp/minTemp (number)." This documents current implementation.
 
 Both go in the same Agent Spec section.
 
@@ -41,9 +46,9 @@ Both go in the same Agent Spec section.
 
 The Agent Spec evolves across the agent's lifecycle:
 
-**Creation (sparse).** Purpose, subagent names, rough descriptions, directional notes about backing logic ("this action needs an Apex class that accepts X, returns Y"). No flowchart yet. Entries are mostly placeholders.
+**Creation (sparse).** Purpose, outcomes, use cases, and planned notes about action implementations ("this action needs an Apex class that accepts X, returns Y"). No full flowchart yet.
 
-**Build (filled).** Flowchart added with transition types labeled. Backing logic mapped (existing implementations identified with filenames, missing implementations stubbed with protocols and I/O specs). Variables documented with their usage and gating impact. Gating rationale explained.
+**Build (filled).** Flowchart added with transition types labeled. Action implementations mapped (existing implementations identified with filenames, missing implementations stubbed with protocols and I/O specs). Variables documented with usage. Add deterministic controls only where required and justified.
 
 **Comprehension (reverse-engineered).** Starting from an existing `.agent` file, produce a complete Agent Spec by parsing subagents, tracing transitions, analyzing actions, and documenting state. This is the "what does this agent do?" output.
 
@@ -55,9 +60,11 @@ Use the starter spec template at `assets/agent-spec-template.md` for new agents.
 
 ---
 
-## 2. Discovery Questions
+## 2. Discovery Questions (Outcome First)
 
-These five question categories drive the content of your Agent Spec. When creating a new agent, use them to elicit requirements from the human. When comprehending or diagnosing an existing agent, extract the answers from the `.agent` file and project files.
+These discovery categories drive the Agent Spec. Start from outcomes and business
+process first, then map to actions/subagents. When comprehending an existing
+agent, extract the same answers from `.agent` and project files.
 
 **Resolve as many questions as possible from available context before asking the human.** Scan existing code, project metadata, prior conversation, and any provided requirements. Only surface questions the human must answer — never forward this list verbatim.
 
@@ -69,13 +76,21 @@ These five question categories drive the content of your Agent Spec. When creati
 - What personality should the agent have? (professional, friendly, formal, casual)
 - What error message should the agent show if something breaks?
 
+### Outcomes, Process, and Requirements *(feeds Behavioral Intent and Deterministic Controls)*
+
+- What outcome should the agent produce for the business and user?
+- What process or policy should the agent follow (for example, verification, time-window checks, escalation rules)?
+- Which steps are strict invariants versus flexible conversational guidance?
+- Which requirements are regulated, audited, trust-sensitive, or otherwise must be deterministic?
+
 ### Subagents & Conversation Flow *(feeds Subagent Map)*
 
 - What distinct conversation areas (subagents) does the agent need?
-- Which subagent is the entry point? (where conversations start)
+- Default router-first design: start from `start_agent agent_router` unless there is a deliberate exception.
 - What are the possible transitions between subagents?
 - Are there subagents that delegate to others and need to return?
 - Are there guardrail subagents (off-topic redirection, ambiguity handling, security gates)?
+- Are there any workflow-local linear steps within a subagent (instead of treating the whole agent as linear)?
 
 ### Reasoning & Instructions *(feeds Behavioral Intent)*
 
@@ -84,17 +99,24 @@ These five question categories drive the content of your Agent Spec. When creati
 - Should the agent do anything before or after reasoning in a given subagent? (e.g., security checks, data fetches, automatic transitions)
 - What data transformations (if any) does the LLM need to do?
 
-### Actions & External Systems *(feeds Actions & Backing Logic)*
+### Subagent Posture *(feeds posture-and-determinism.md)*
+
+- For each subagent, should posture be scripted, mixed, or agentic?
+- If deterministic controls are added, what is the explicit cause (regulation/trust/observed failure)?
+- Which controls are true invariants (`available when`) vs guidance?
+
+### Actions & External Systems *(feeds Actions & Implementations)*
 
 - What external systems does the agent call?
   - Salesforce Flows (autolaunched only)
   - Apex classes (invocable only)
   - Prompt Templates
   - External APIs (not directly; must be wrapped in Apex or Flow)
-- For each action: What inputs? What outputs? When should it be available?
+- For each action: what inputs, outputs, and availability conditions are required?
+- Should any action be a placeholder stub first so the team can iterate on behavior before full implementation?
 - What custom objects exist in the project? Scan `objects/` for `.object-meta.xml` files. Check relationships (lookup, master-detail) between objects — related objects often contain data the agent should expose even when not explicitly mentioned in the prompt.
 
-### State Management *(feeds Variables, Gating Logic)*
+### State Management *(feeds Variables and Deterministic Controls)*
 
 - What information must persist across the conversation? (customer name, preferences, process state)
 - What external context is needed? (session ID, user record, linked fields)
@@ -105,6 +127,8 @@ These five question categories drive the content of your Agent Spec. When creati
 ## 3. Environment Prerequisites
 
 **⚠️ MANDATORY: Run these checks immediately after determining the agent type during discovery.** Do not proceed to subagent architecture or code generation until the environment is validated.
+
+Posture guidance is separate from architecture. Read [Posture and Determinism](posture-and-determinism.md) to choose subagent posture (scripted, mixed, agentic) based on requirements and observed failures.
 
 ### `AgentforceEmployeeAgent`
 
@@ -196,13 +220,21 @@ Use **multi-subagent** if:
 - The agent handles multiple distinct domains (customer service: orders + billing + account)
 - Different subagents have different instructions or action sets
 - Users may need to switch contexts mid-conversation
-- You need different entry points or security gates
+- You need security gates or clearly distinct action sets
 
 ### Architecture Patterns
 
-**Hub-and-Spoke.** One central subagent (the router) transitions to specialized domain subagents. The router is typically the `start_agent` subagent. Each spoke handles a specific domain and may transition back to the router or to other spokes. Use when the agent handles multiple distinct domains that don't naturally flow together.
+Default architecture is router-first (`start_agent agent_router`) for most agents.
+Treat linear flow as workflow-local sequencing inside or between specific subagents,
+not as the default shape for the entire agent.
 
-Example: The Local Info Agent. The `agent_router` subagent (hub) routes to domain and guardrail subagents (spokes).
+Use [Patterns by Requirement](patterns-by-requirement.md) to choose the right
+pattern for the scenario. Use [Architecture Patterns](architecture-patterns.md)
+for detailed mechanics and migration guidance.
+
+**Router-First Architecture.** One central router (`start_agent agent_router`) transitions to specialized domain subagents. Subagents may transition directly to other subagents when the workflow calls for it, or return to router when reclassification is needed. Use when the agent handles multiple distinct domains that don't naturally flow together.
+
+Example: The Local Info Agent. The `agent_router` router transitions to domain and guardrail subagents.
 
 ```agentscript
 start_agent agent_router:
@@ -293,21 +325,23 @@ start_agent faq:
 
 ### Composing Patterns
 
-Real agents often combine patterns. A hub-and-spoke agent may use a verification gate before protected spokes. A linear flow may include escalation exits at each stage. When composing, each subagent still serves exactly one role (domain, guardrail, or escalation) — the architecture pattern determines how they connect.
+Real agents often combine patterns. A router-first agent may use a verification gate before protected subagents. A linear flow may include escalation exits at each stage. When composing, each subagent still serves exactly one role (domain, guardrail, or escalation) — the architecture pattern determines how they connect.
 
 ---
 
-## 5. Mapping Logic to Actions
+## 5. Mapping Action Implementations
 
-Every action in Agent Script needs backing logic — a Salesforce implementation that does the work. When creating a new agent, identify existing backing logic and stub what's missing. When comprehending an existing agent, trace each action to its backing implementation to understand what it does.
+Every action in Agent Script needs an implementation in Salesforce. When creating
+an agent, identify existing implementations and stub what's missing. When
+comprehending an existing agent, trace each action to its implementation.
 
-### Valid Backing Logic Types
+### Valid Action Implementation Types
 
-The most common backing logic types are Apex, Flows, and Prompt Templates.
+The most common implementation types are Apex, Flows, and Prompt Templates.
 
 **Apex**: Only **invocable Apex classes** work. A regular Apex class, even if it has public methods, will not work. Invocable classes use two key annotations:
 
-`@InvocableMethod` marks the entry point. Its attributes: `label` (human-readable name), `description` (what the method does). Read these when comprehending existing backing logic.
+`@InvocableMethod` marks the entry point. Its attributes: `label` (human-readable name), `description` (what the method does). Read these when comprehending existing action implementations.
 
 > ⚠️ **An Apex class can only have ONE `@InvocableMethod`.** If you need multiple actions, create separate classes — one per action.
 
@@ -359,7 +393,7 @@ Wire with: `target: "flow://FlowApiName"`
 
 Wire with: `target: "prompt://TemplateName"` (short form). The long form `generatePromptResponse://TemplateName` also works but prefer the short form.
 
-### How to Identify Existing Backing Logic
+### How to Identify Existing Implementations
 
 Read `sfdx-project.json` and look at the `packageDirectories` array — each entry's `path` field tells you where source files live (typically `force-app/main/default/`).
 
@@ -407,7 +441,7 @@ check_order action:
   Status: IMPLEMENTED
 ```
 
-### Connecting Backing Logic to Action Definitions
+### Connecting Implementations to Action Definitions
 
 Each `@InvocableVariable` on the request class becomes an action input; each on the result class becomes an output. The `target` field points to the implementation.
 
@@ -543,11 +577,11 @@ Capture this decision during spec creation using the **Visible to User?** column
                 filter_from_agent: True    # Internal flag. Hide from user
 ```
 
-**⚠️ Invalid backing logic (non-autolaunched Flow, non-invocable Apex) may pass validation and simulation-mode preview. The failure surfaces at deploy or as cryptic runtime errors in live mode.** Always verify the backing logic type before wiring.
+**⚠️ Invalid action implementations (non-autolaunched Flow, non-invocable Apex) may pass validation and simulation-mode preview. The failure surfaces at deploy or as cryptic runtime errors in live mode.** Always verify implementation type before wiring.
 
 ### How to Stub Missing Logic
 
-When no backing logic exists for an action, stub it as an invocable Apex class. Always use Apex for stubs — do not attempt to hand-craft Flow XML or Prompt Template metadata.
+When no implementation exists for an action, stub it as an invocable Apex class. Always use Apex for stubs — do not attempt to hand-craft Flow XML or Prompt Template metadata.
 
 First, record the stub in the Agent Spec:
 ```
@@ -570,7 +604,7 @@ sf template generate apex class --json --name InvoiceFetcher --output-dir <PACKA
 
 This creates both the `.cls` and `.cls-meta.xml` files. Do not create test classes for stubs.
 
-**Stub vs. functional backing logic.** If the prompt implies data access ("grounded in X data," "query Y records," "look up Z"), write functional Apex with bulkified SOQL per `assets/invocable-apex-template.cls`. Prefer static SOQL. If dynamic SOQL is required, NEVER append `WITH USER_MODE` to the query string — use `Database.query(q, AccessLevel.USER_MODE)` instead. See *Dynamic SOQL* in the template.
+**Stub vs. functional implementation.** If the prompt implies data access ("grounded in X data," "query Y records," "look up Z"), write functional Apex with bulkified SOQL per `assets/invocable-apex-template.cls`. Prefer static SOQL. If dynamic SOQL is required, NEVER append `WITH USER_MODE` to the query string — use `Database.query(q, AccessLevel.USER_MODE)` instead. See *Dynamic SOQL* in the template.
 
 If the prompt does not imply data access, or if the action's data requirements are unclear, write a minimal stub — hardcoded return values only. Do not add SOQL, conditional logic, or complex inner class structures to minimal stubs.
 

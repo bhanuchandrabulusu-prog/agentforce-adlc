@@ -1,8 +1,8 @@
-# Hub-and-Spoke Architecture Template
+# Router-First Architecture Template
 # ====================================
 #
-# This template demonstrates the Hub-and-Spoke pattern where a central
-# agent_router (hub) routes conversations to specialized subagents (spokes).
+# This template demonstrates router-first architecture where a central
+# agent_router routes conversations to specialized subagents.
 #
 # Pattern: Multi-purpose agents handling distinct request types
 # Use when: Users may have different intents (orders, support, returns)
@@ -14,9 +14,9 @@ system:
    instructions: "You are a customer service agent for an e-commerce company."
 
 config:
-   agent_name: "HubAndSpokeAgent"
+   agent_name: "RouterFirstAgent"
    agent_label: "Customer Service Agent"
-   description: "Multi-purpose agent with hub-and-spoke architecture"
+   description: "Multi-purpose agent with router-first architecture"
    default_agent_user: "agent@yourorg.com"  # REQUIRED: Change to valid Einstein Agent User
 
 variables:
@@ -29,7 +29,7 @@ variables:
       description: "Whether the issue has been resolved"
 
 # ============================================================
-# HUB: Central Router
+# ROUTER: Central intent routing
 # ============================================================
 
 start_agent agent_router:
@@ -37,9 +37,9 @@ start_agent agent_router:
    reasoning:
       instructions: |
          Determine what the customer needs and route accordingly:
-         - Order questions → orders subagent
-         - Return/refund requests → returns subagent
-         - General questions → support subagent
+         - Order questions -> orders subagent
+         - Return/refund requests -> returns subagent
+         - General questions -> support subagent
       actions:
          check_order: @utils.transition to @subagent.orders
             description: "Customer wants to check order status"
@@ -49,7 +49,7 @@ start_agent agent_router:
             description: "General support questions"
 
 # ============================================================
-# SPOKE: Orders Subagent
+# SUBAGENT: Orders
 # ============================================================
 
 subagent orders:
@@ -65,11 +65,13 @@ subagent orders:
          lookup_order: @actions.get_order_status
             description: "Look up order details"
             with order_id = @variables.order_id
-         back_to_hub: @utils.transition to @subagent.agent_router
-            description: "Return to main menu"
+         to_returns: @utils.transition to @subagent.returns
+            description: "Continue to return workflow when needed"
+         reclassify: @utils.transition to @subagent.agent_router
+            description: "Reclassify request when intent changes"
 
 # ============================================================
-# SPOKE: Returns Subagent
+# SUBAGENT: Returns
 # ============================================================
 
 subagent returns:
@@ -84,11 +86,11 @@ subagent returns:
             description: "Start a return process"
          process_refund: @actions.process_refund
             description: "Process a refund"
-         back_to_hub: @utils.transition to @subagent.agent_router
-            description: "Return to main menu"
+         reclassify: @utils.transition to @subagent.agent_router
+            description: "Reclassify request when intent changes"
 
 # ============================================================
-# SPOKE: Support Subagent
+# SUBAGENT: Support
 # ============================================================
 
 subagent support:
@@ -100,5 +102,5 @@ subagent support:
       actions:
          escalate: @utils.escalate
             description: "Transfer to human agent"
-         back_to_hub: @utils.transition to @subagent.agent_router
-            description: "Return to main menu"
+         reclassify: @utils.transition to @subagent.agent_router
+            description: "Reclassify request when intent changes"

@@ -1,6 +1,7 @@
 # Architecture Patterns
 
-> Extracted from SKILL.md Section 8. This file is loaded on demand when architecture pattern guidance is needed.
+> Architecture mechanics reference. Start with `references/patterns-by-requirement.md`
+> to choose patterns by scenario, then use this file for implementation details.
 
 > All architecture patterns below work for both `AgentforceServiceAgent` and `AgentforceEmployeeAgent`. The only difference is that employee agents cannot use `@utils.escalate` or `connection messaging:` — replace escalation with a `@utils.transition` to a help subagent or an action that creates a case/ticket.
 
@@ -8,14 +9,22 @@
 
 | Pattern | Use When |
 |---------|----------|
-| Hub-and-Spoke | Agent has 2+ distinct subagents with different intents (most common) |
+| Router-First Architecture | Agent has 2+ distinct subagents with different intents (most common) |
 | Verification Gate | Sensitive data, payments, or PII require identity verification first |
 | Post-Action Loop | Actions produce state that drives follow-up logic (e.g., risk scoring) |
 | Single Subagent | Agent serves one focused purpose with no routing needed |
 
-## Hub-and-Spoke (Most Common)
+## Router-First Default
 
-A central `agent_router` routes to specialized spoke subagents. Each spoke has a "back to hub" transition. Use when users may have multiple distinct intents.
+For most agents, default to router-first architecture:
+
+- `start_agent agent_router` handles intent routing
+- Domain subagents implement use-case behavior
+- Linear sequencing is usually workflow-local, not whole-agent architecture
+
+## Router-First Architecture (Most Common)
+
+A central `agent_router` routes to specialized subagents. Transition paths should be use-case-driven: subagent -> subagent when workflow continues naturally, and subagent -> router when the conversation needs reclassification.
 
 ```
 start_agent agent_router:
@@ -40,11 +49,11 @@ subagent order_support:
 		actions:
 			lookup: @actions.get_order
 				description: "Look up order"
-			back: @utils.transition to @subagent.agent_router
-				description: "Route to a different subagent"
+			to_returns: @utils.transition to @subagent.return_support
+				description: "Continue to return workflow when needed"
 ```
 
-> **Routing lives in `start_agent`** -- put all transition actions directly in `start_agent agent_router:`. Do NOT create a separate routing-only subagent (e.g. `main_menu`, `central_hub`) -- that duplicates the router, adds an extra LLM hop (~3-5s latency), and confuses the platform. Subagents that need "go back" should transition to `@subagent.agent_router`.
+> **Routing lives in `start_agent`** -- put classification transitions in `start_agent agent_router:`. Do NOT create a separate routing-only subagent (e.g. `main_menu`, `central_hub`) -- that duplicates the router, adds an extra LLM hop (~3-5s latency), and confuses the platform. A transition back to router is optional and should only be added when the use case requires reclassification.
 
 ## Verification Gate
 
@@ -114,20 +123,20 @@ reasoning:
 			| STANDARD - Follow normal process.
 ```
 
-## Migrating to Hub-and-Spoke
+## Migrating to Router-First Architecture
 
-When refactoring a flat agent (all logic in one subagent) into hub-and-spoke:
+When refactoring a flat agent (all logic in one subagent) into router-first architecture:
 
-1. **Identify distinct intents** — each becomes a spoke subagent
-2. **Move instructions and actions** from the monolithic subagent into spoke subagents. Each spoke needs BOTH its Level 1 action definitions (under `subagent > actions`) AND Level 2 action invocations (under `subagent > reasoning > actions`).
-3. **Create `start_agent agent_router:`** with transition actions pointing to each spoke
-4. **Add "back to hub" transitions** in each spoke: `@utils.transition to @subagent.agent_router`
+1. **Identify distinct intents** — each becomes a specialized subagent
+2. **Move instructions and actions** from the monolithic subagent into specialized subagents. Each subagent needs BOTH its Level 1 action definitions (under `subagent > actions`) AND Level 2 action invocations (under `subagent > reasoning > actions`).
+3. **Create `start_agent agent_router:`** with transition actions pointing to each specialized subagent
+4. **Add transitions based on workflow needs** — subagent -> subagent for continuous workflows, or subagent -> router for reclassification turns
 5. **Re-preview immediately** — verify subagent routing works before making further changes
 
 **Common migration mistakes:**
 - Creating a separate `main_menu` subagent instead of using `start_agent agent_router:` as the hub — adds an unnecessary LLM hop
-- Leaving action definitions in `start_agent` instead of moving them to spoke subagents — all actions visible in all subagents, confusing the planner
-- Forgetting to add "back to hub" transitions — users get stuck in a spoke subagent
+- Leaving action definitions in `start_agent` instead of moving them to specialized subagents — all actions visible in all subagents, confusing the planner
+- Routing everything back to router by default, even when a direct subagent-to-subagent transition better matches the workflow
 - If trace shows `topic: "DefaultTopic"`, check that subagent descriptions contain keywords matching test utterances
 
 ## Multi-Intent Handling

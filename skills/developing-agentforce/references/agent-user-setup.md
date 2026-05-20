@@ -412,7 +412,7 @@ If testing reveals problems, edit your agent script or Apex classes, redeploy, a
 </objectPermissions>
 ```
 
-See [preview-test-loop.md](preview-test-loop.md) for the complete smoke test workflow.
+See [agent-validation-and-debugging.md](agent-validation-and-debugging.md) for the complete smoke-test and trace workflow.
 
 #### 6.3: Publish Agent
 

@@ -1,5 +1,5 @@
 # Multi-Subagent Agent Template
-# An agent with multiple conversation subagents (hub-and-spoke pattern)
+# An agent with multiple conversation subagents (router-first architecture)
 # Users are routed to specialized subagents based on their needs
 #
 # Usage: Replace {{placeholders}} with your values

@@ -11,7 +11,7 @@ Templates for building complete, deployable agents.
 | `template-single-subagent.agent` | Beginner | Copy-and-modify starter with one subagent |
 | `multi-subagent.agent` | Intermediate | Multi-subagent routing agent |
 | `template-multi-subagent.agent` | Intermediate | Copy-and-modify starter with multiple subagents |
-| `hub-and-spoke.agent` | Intermediate | Central-router architecture pattern |
+| `router-first.agent` | Intermediate | Router-first architecture pattern |
 | `verification-gate.agent` | Advanced | Security gate before protected subagents |
 | `knowledge-grounded.agent` | Advanced | Agent wired to a Data Library (ADL) |
 | `order-service.agent` | Advanced | Complex real-world example |
@@ -30,7 +30,14 @@ Templates for building complete, deployable agents.
 2. Validate and deploy:
    ```bash
    sf agent validate authoring-bundle --json --api-name My_Agent --target-org your-org
+   sf project deploy start --json --source-dir force-app --target-org your-org
+   sf agent preview start --json --use-live-actions --authoring-bundle My_Agent --target-org your-org
+   ```
+
+3. Publish and activate only when ready to release:
+   ```bash
    sf agent publish authoring-bundle --json --api-name My_Agent --target-org your-org
+   sf agent activate --json --api-name My_Agent --target-org your-org
    ```
 
 ## Required Blocks

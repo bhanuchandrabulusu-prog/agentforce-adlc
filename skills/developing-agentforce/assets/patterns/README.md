@@ -2,6 +2,9 @@
 
 This folder contains reusable patterns for common Agentforce scenarios.
 
+Use `references/patterns-by-requirement.md` first to choose which pattern to apply
+for a given requirement. Then use this folder for concrete snippets.
+
 ## Pattern Decision Tree
 
 ```
@@ -231,16 +234,25 @@ open-gate-routing + lifecycle-events
 └── after_reasoning: Post-auth routing + analytics
 ```
 
-## Validation Scoring Impact
+## Validation and Review Guidance
 
-| Pattern | Scoring Boost | Key Requirements |
-|---------|--------------|------------------|
-| Action Callbacks | +5 pts | No nested run |
-| Lifecycle Events | +5 pts | Proper block placement |
-| Bidirectional | +5 pts | Return transitions |
-| Input Bindings | +5 pts | Proper binding patterns |
-| System Overrides | +5 pts | Static system, dynamic subagents |
-| Open Gate | +5 pts | 3-variable coordination |
+Patterns are not scored by quantity. More patterns do **not** mean a better agent.
+
+Use a pattern only when a requirement justifies it. Review quality should focus on:
+
+- Requirement fit (pattern solves a real need)
+- Correct implementation syntax
+- Behavioral reliability in preview traces
+- Maintainability (no unnecessary complexity)
+
+| Pattern | What reviewers should verify |
+|---------|------------------------------|
+| Action Callbacks | `run` chains are needed and not nested incorrectly |
+| Lifecycle Events | `before_reasoning`/`after_reasoning` are used intentionally, not as default noise |
+| Bidirectional | Return path is explicit only when workflow requires return |
+| Input Bindings | Pinning vs `...` matches posture and data trust requirements |
+| System Overrides | Dynamic instructions are requirement-driven and not contradictory |
+| Open Gate | Gate state management is complete and reset paths are covered |
 
 ## Anti-Patterns to Avoid
 

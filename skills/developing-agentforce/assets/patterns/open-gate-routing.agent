@@ -25,7 +25,7 @@
 # ★ Related Patterns:
 #   - Latch Variable (SKILL.md) — simpler 1-variable version, no auth gate
 #   - Bidirectional Routing (bidirectional-routing.agent) — specialist consultation, not interception
-#   - Verification Gate (fsm-architecture.md) — linear one-time gate, no deferred return
+#   - Verification Gate (references/architecture-patterns.md) — linear one-time gate, no deferred return
 #
 # ★ Credit: Hua Xu (Salesforce APAC FDE team) — production pattern from Kogan agent deployment
 #

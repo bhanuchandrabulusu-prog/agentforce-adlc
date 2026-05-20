@@ -186,7 +186,7 @@ ALWAYS use `--json` when calling from a script or AI assistant (not interactive 
 sf agent preview start --json --authoring-bundle <BUNDLE_NAME> --use-live-actions
 ```
 
-This command returns a session ID. Capture it immediately — you need it for every subsequent command. Use `--use-live-actions` to execute real backing logic (recommended). Omit it only when backing logic doesn't exist yet and you want simulated preview.
+This command returns a session ID. Capture it immediately — you need it for every subsequent command. Use `--use-live-actions` to execute real action implementations (recommended). Omit it only when implementations don't exist yet and you want simulated preview.
 
 Example:
 

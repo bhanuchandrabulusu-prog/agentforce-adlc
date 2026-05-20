@@ -101,7 +101,7 @@ Recommended order: `apiVersion` -> `description` -> `label` -> `variables` -> `a
 3. Update test classes with meaningful assertions
 4. Add error handling and FLS/CRUD checks
 
-## Backing Logic Selection Criteria
+## Action Implementation Selection Criteria
 
 | Criteria | Choose Flow | Choose Apex |
 |----------|-------------|-------------|
@@ -112,7 +112,7 @@ Recommended order: `apiVersion` -> `description` -> `label` -> `variables` -> `a
 | Maintenance | Admins maintain | Developers maintain |
 | Testing | Flow test coverage built-in | Requires Apex test class (75%+ coverage) |
 
-**Rule of thumb:** If the action does a single record lookup or update with no callouts, use Flow. If it involves callouts, complex logic, or bulk operations, use Apex. When in doubt, prefer Apex — it's more debuggable and less constrained.
+**Rule of thumb:** If the action does a single record lookup or update with no callouts, Flow is often a good fit. If it involves callouts, complex logic, or bulk operations, Apex is often a better fit. Choose based on requirement fit and team ownership, not a default preference.
 
 ## Integration Workflow
 
@@ -126,8 +126,7 @@ sf api request rest --json "/services/data/v63.0/tooling/query?q=SELECT+Name+FRO
 sf project deploy start --json --source-dir force-app/main/default -o myorg
 # 5. Verify targets exist
 sf api request rest --json "/services/data/v63.0/tooling/query?q=SELECT+DeveloperName+FROM+Flow+WHERE+IsActive=true+AND+ProcessType='AutoLaunchedFlow'" -o myorg
-# 6. Publish agent
-sf agent publish authoring-bundle --json --api-name MyAgent -o myorg
+# 6. Continue draft testing (publish/activate only with explicit release approval)
 ```
 
 ## Exit Codes
