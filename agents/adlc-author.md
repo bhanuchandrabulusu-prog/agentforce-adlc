@@ -43,7 +43,7 @@ Review templates in `/skills/developing-agentforce/assets/agents/`:
 - `hello-world.agent` — Basic single subagent
 - `multi-subagent.agent` — Multiple subagents with transitions
 - `verification-gate.agent` — Security/validation patterns
-- `hub-and-spoke.agent` — Central router pattern
+- `router-first.agent` — Router-first architecture (intent routing across subagents)
 - `order-service.agent` — Complex real-world example
 
 ### 3. Agent Script Generation

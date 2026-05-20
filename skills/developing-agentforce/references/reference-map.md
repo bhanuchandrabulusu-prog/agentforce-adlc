@@ -1,5 +1,7 @@
 # Reference Map and Consolidation Plan
 
+> Meta document: describes how to use and maintain the reference set.
+
 This file defines which references are primary vs supplemental so the skill stays
 organized without risky deletions.
 

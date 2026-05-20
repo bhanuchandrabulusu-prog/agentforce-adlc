@@ -441,7 +441,7 @@ class AgentScriptValidator:
                 if topic_name in redundant_names:
                     self.warnings.append((i, "WARN",
                         f"Topic '{match.group(1)}' looks like a redundant router (line {i}) — "
-                        f"in hub-and-spoke, start_agent IS the router. "
+                        f"in router-first architecture, start_agent IS the router. "
                         f"Remove this topic and have spokes transition to @topic.topic_selector instead."))
 
     def _auto_resolve_placeholder(self):

@@ -14,7 +14,7 @@ system:
    instructions: "You are a customer service agent for an e-commerce company."
 
 config:
-   agent_name: "RouterFirstAgent"
+   agent_name: "Router_First_Agent"
    agent_label: "Customer Service Agent"
    description: "Multi-purpose agent with router-first architecture"
    default_agent_user: "agent@yourorg.com"  # REQUIRED: Change to valid Einstein Agent User

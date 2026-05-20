@@ -88,7 +88,7 @@ Restart Claude Code after installation.
 
 ## Version
 
-Current version: **0.6.0** (2026-05-20). See [references/version-history.md](references/version-history.md) for the full changelog.
+Current version: **0.6.1** (2026-05-20). See [references/version-history.md](references/version-history.md) for the full changelog.
 
 ## Credits
 

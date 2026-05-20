@@ -16,13 +16,13 @@
 
 ## Router-First Default
 
-For most agents, default to router-first architecture:
+This file focuses on router-first mechanics and migration details:
 
 - `start_agent agent_router` handles intent routing
 - Domain subagents implement use-case behavior
 - Linear sequencing is usually workflow-local, not whole-agent architecture
 
-## Router-First Architecture (Most Common)
+## Router-First Architecture Mechanics
 
 A central `agent_router` routes to specialized subagents. Transition paths should be use-case-driven: subagent -> subagent when workflow continues naturally, and subagent -> router when the conversation needs reclassification.
 

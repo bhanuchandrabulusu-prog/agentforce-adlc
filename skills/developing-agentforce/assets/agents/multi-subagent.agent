@@ -60,7 +60,10 @@ subagent {{subagent_one_name}}:
 		instructions: ->
 			| {{SubagentOneInstructions}}
 		actions:
-			back_to_menu: @utils.transition to @subagent.agent_router
+			go_to_subagent_two: @utils.transition to @subagent.{{subagent_two_name}}
+				description: "Continue workflow in subagent two when needed"
+			reclassify_request: @utils.transition to @subagent.agent_router
+				description: "Return to router when user intent changes"
 
 subagent {{subagent_two_name}}:
 	label: "{{SubagentTwoLabel}}"
@@ -70,7 +73,10 @@ subagent {{subagent_two_name}}:
 		instructions: ->
 			| {{SubagentTwoInstructions}}
 		actions:
-			back_to_menu: @utils.transition to @subagent.agent_router
+			go_to_subagent_three: @utils.transition to @subagent.{{subagent_three_name}}
+				description: "Continue workflow in subagent three when needed"
+			reclassify_request: @utils.transition to @subagent.agent_router
+				description: "Return to router when user intent changes"
 
 subagent {{subagent_three_name}}:
 	label: "{{SubagentThreeLabel}}"
@@ -80,7 +86,8 @@ subagent {{subagent_three_name}}:
 		instructions: ->
 			| {{SubagentThreeInstructions}}
 		actions:
-			back_to_menu: @utils.transition to @subagent.agent_router
+			reclassify_request: @utils.transition to @subagent.agent_router
+				description: "Return to router when user intent changes"
 
 subagent farewell:
 	label: "Farewell"

@@ -1,4 +1,4 @@
-# Developing Agentforce 0.6.0 Change Summary
+# Developing Agentforce Skill 0.6.1 Change Summary
 
 Date: 2026-05-20
 

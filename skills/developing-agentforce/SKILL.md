@@ -4,7 +4,7 @@ description: "Build, modify, debug, and deploy agents with Agentforce Agent Scri
 license: Apache-2.0
 compatibility: "Requires Agentforce license, API v66.0+, Einstein Agent User"
 metadata:
-  version: "0.6.0"
+  version: "0.6.1"
   last_updated: "2026-05-20"
 ---
 
@@ -62,13 +62,10 @@ Identify user intent from task descriptions. ALWAYS read indicated reference fil
    explicit release actions that require the user to confirm they are ready to
    commit the current draft to metadata and expose it to end users.
 
-7. **Default agentic, pin with cause.** Default each subagent to the most
-   agentic posture that still meets the requirement. Add deterministic controls
-   only with cause: regulated/audited flows, identity/trust gates, or observed
-   failures. `available when` is the primary invariant control. Action inputs
-   should default to `...`; pin parameter values only when sourced from a
-   controlled value (for example, verified identity output) or when extraction
-   has demonstrably failed in traces.
+7. **Default agentic, pin with cause.** Use the most agentic posture that meets
+   each subagent's requirement, and add deterministic controls only for
+   regulation/trust gates or observed failures. For detailed posture rules, see
+   [Posture & Determinism](references/posture-and-determinism.md).
 
 ## Task Domains
 
