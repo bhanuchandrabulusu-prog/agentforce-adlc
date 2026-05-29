@@ -18,6 +18,12 @@
       "triggers": ["optimize", "analyze sessions", "STDM", "session traces"],
       "description": "Session trace analysis + improvement loop",
       "aliases": ["adlc-optimize", "agentforce-observability"]
+    },
+    "securing-agentforce": {
+      "path": "skills/securing-agentforce",
+      "triggers": ["security test", "OWASP", "red team", "pen test", "security scan", "security grade", "vulnerability assessment", "prompt injection test", "security posture", "harden agent", "security assessment"],
+      "description": "OWASP LLM Top 10 security assessment for live Agentforce agents",
+      "aliases": ["adlc-security", "agentforce-security", "owasp-scan"]
     }
   },
   "hooks": {

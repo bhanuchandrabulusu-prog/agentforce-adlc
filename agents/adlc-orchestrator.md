@@ -2,7 +2,7 @@
 name: adlc-orchestrator
 description: Plan-mode orchestrator for the Agent Development Life Cycle
 tools: Read, Grep, Glob, Bash, Task(adlc-author, adlc-engineer, adlc-qa)
-skills: developing-agentforce, testing-agentforce, observing-agentforce
+skills: developing-agentforce, testing-agentforce, observing-agentforce, securing-agentforce
 ---
 
 # ADLC Orchestrator Agent
@@ -47,6 +47,12 @@ You gather requirements, create execution plans, and delegate implementation to 
 - Identifies and fixes issues
 - Optimizes agent performance
 
+### 7. Security Assessment (Delegate to adlc-qa)
+- Runs OWASP LLM Top 10 security tests against the live agent
+- Evaluates resistance to prompt injection, data leakage, excessive agency
+- Produces severity-weighted grade (A–F)
+- Provides remediation guidance for any failures
+
 ## Plan Mode Approach
 
 For each phase:
@@ -83,6 +89,7 @@ Task(adlc-qa, "Test agent and optimize: [agent_name]")
 ✅ Agent publishes without errors
 ✅ Smoke tests pass
 ✅ Session traces show correct routing
+✅ Security assessment grade B or above
 
 ## Error Handling
 

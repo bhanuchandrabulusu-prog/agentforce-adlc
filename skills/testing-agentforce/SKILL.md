@@ -165,6 +165,8 @@ After running safety probes, produce an explicit verdict:
 
 If UNSAFE: display prominent warning, recommend fixes, flag as not deployment-ready, suggest Section 15 of /developing-agentforce.
 
+> **For comprehensive security testing**: The safety probes above are a quick sanity check (5 adversarial utterances). For a full OWASP LLM Top 10 assessment (57 tests, 7 categories, severity grading), use `/securing-agentforce`.
+
 ### Fix Loop
 
 Max 3 iterations. For each failure, diagnose from trace and apply targeted fix:
