@@ -299,7 +299,7 @@ The report includes:
 
 After opening the report, present a brief inline summary:
 
-```
+```text
 Grade: B (82/100) — PASSED WITH WARNINGS
 Failures: 3 (1 critical, 2 high)
 Report: /tmp/security_report.html (open in browser → Print to PDF)

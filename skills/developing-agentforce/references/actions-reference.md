@@ -456,7 +456,7 @@ public class WrappedAction {
 
 ### Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                  API ACTION ARCHITECTURE                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -571,7 +571,7 @@ actions:
 
 When building agents with external API integrations, follow this order:
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  INTEGRATION + AGENTFORCE ORCHESTRATION ORDER                │
 ├──────────────────────────────────────────────────────────────┤

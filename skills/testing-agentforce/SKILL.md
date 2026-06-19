@@ -298,7 +298,7 @@ Reports include: subagent routing %, action invocation %, grounding %, safety %,
 
 ### Test File Location Convention
 
-```
+```text
 <project-root>/tests/
   <AgentApiName>-testing-center.yaml  # Full smoke suite (Mode B)
   <AgentApiName>-regression.yaml      # Regression tests from /observing-agentforce (Mode B)
