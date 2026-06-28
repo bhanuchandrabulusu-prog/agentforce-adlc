@@ -4,7 +4,7 @@ Configure a fresh Salesforce org so it's ready for Agentforce Data Library (ADL)
 
 ## Overview
 
-The ADLC `/developing-agentforce` skill assumes the org is already configured for ADL. A fresh org (even with correct licenses provisioned) still needs several setup steps before ADL can work. This skill automates those steps via SF CLI.
+The ADLC `/agentforce-generate` skill assumes the org is already configured for ADL. A fresh org (even with correct licenses provisioned) still needs several setup steps before ADL can work. This skill automates those steps via SF CLI.
 
 **What this skill sets up:**
 - Lightning Knowledge (required for KNOWLEDGE source type)
@@ -14,7 +14,7 @@ The ADLC `/developing-agentforce` skill assumes the org is already configured fo
 - Einstein Agent User permissions (Data Cloud permset + Knowledge FLS)
 - Language alignment verification (prevents silent empty results)
 
-**After this skill completes**, you can run `/developing-agentforce` to create knowledge-grounded agents with any source type.
+**After this skill completes**, you can run `/agentforce-generate` to create knowledge-grounded agents with any source type.
 
 ## Platform Notes
 
@@ -535,7 +535,7 @@ After completing all steps, verify the full setup:
 
 ## Next Steps
 
-Once setup is complete, use `/developing-agentforce` to create a knowledge-grounded agent:
+Once setup is complete, use `/agentforce-generate` to create a knowledge-grounded agent:
 
 ```text
 You: Create a knowledge-grounded agent from ~/docs/manual.pdf on org myOrg
@@ -548,4 +548,4 @@ You: Use custom retriever 1CxXXX on org myOrg
      → Skill routes to RETRIEVER, wraps retriever, immediately ready
 ```
 
-For all source types, the `/developing-agentforce` skill handles ADL creation, wiring, preview, and publish automatically — this setup skill just ensures the org is ready for it.
+For all source types, the `/agentforce-generate` skill handles ADL creation, wiring, preview, and publish automatically — this setup skill just ensures the org is ready for it.

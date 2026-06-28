@@ -18,7 +18,7 @@ The skill routes agent work across the full lifecycle:
 ## Skill Structure
 
 ```text
-developing-agentforce/
+agentforce-generate/
 ├── SKILL.md                    # Execution router and hard rules
 ├── references/                 # Domain guidance and adjacent operational docs
 │   ├── patterns-by-requirement.md
@@ -61,13 +61,13 @@ Core rules include:
 
 ## Installation
 
-Copy the `developing-agentforce` folder into your project's `.claude/skills/` directory:
+Copy the `agentforce-generate` folder into your project's `.claude/skills/` directory:
 
 ```text
 your-project/
 └── .claude/
     └── skills/
-        └── developing-agentforce/
+        └── agentforce-generate/
             ├── SKILL.md
             ├── references/
             └── assets/

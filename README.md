@@ -20,30 +20,30 @@ using Claude Code skills and Agent Script DSL.
 
 ```
 User prompt
-  |  /developing-agentforce
+  |  /agentforce-generate
   v
 +--------------------------+
 | Safety Review (Phase 0)  |<-- LLM-driven, 7 categories
 | .agent file generated    |
 +--------+-----------------+
-         |  /developing-agentforce (discover)
+         |  /agentforce-generate (discover)
          v
 +--------------------------+
 | Check org for targets    |--missing--> scaffold stubs
 +--------+-----------------+
-         |  /developing-agentforce (deploy)
+         |  /agentforce-generate (deploy)
          v
 +--------------------------+
 | Safety Gate -> Validate  |<-- Pre-publish check
 | -> Publish -> Activate   |
 +--------+-----------------+
-         |  /testing-agentforce
+         |  /agentforce-test
          v
 +--------------------------+
 | Preview + Batch tests    |<-- Safety probe utterances (adversarial)
 | + Action execution       |
 +--------+-----------------+
-         |  /observing-agentforce
+         |  /agentforce-observe
          v
 +--------------------------+
 | STDM session analysis    |<-- Safety issue detection in traces
@@ -51,7 +51,7 @@ User prompt
 +--------------------------+
 ```
 
-Each skill can be invoked independently. Run `/testing-agentforce` on an existing agent without touching the development steps. Run `/observing-agentforce` on production session data without redeploying.
+Each skill can be invoked independently. Run `/agentforce-test` on an existing agent without touching the development steps. Run `/agentforce-observe` on production session data without redeploying.
 
 ## Installation
 
@@ -69,7 +69,7 @@ claude plugin marketplace add SalesforceAIResearch/agentforce-adlc
 claude plugin install agentforce-adlc@agentforce-adlc
 ```
 
-When installed as a plugin, skills are namespaced: `/agentforce-adlc:developing-agentforce`, `/agentforce-adlc:testing-agentforce`, `/agentforce-adlc:observing-agentforce`.
+When installed as a plugin, skills are namespaced: `/agentforce-adlc:agentforce-generate`, `/agentforce-adlc:agentforce-test`, `/agentforce-adlc:agentforce-observe`.
 
 ### File-copy install (Cursor or legacy Claude Code)
 
@@ -102,7 +102,7 @@ After install, restart your IDE. Skills are available in any project.
 
 | Component | Plugin (Claude Code) | File-copy (`~/.claude/`) | File-copy (`~/.cursor/`) |
 |-----------|---------------------|--------------------------|-------------------------|
-| Skills | Auto-discovered from `skills/` | `skills/*-agentforce/` | `skills/*-agentforce/` |
+| Skills | Auto-discovered from `skills/` | `skills/agentforce-*/` | `skills/agentforce-*/` |
 | Agents | Auto-discovered from `agents/` | `agents/adlc-*.md` | N/A |
 | Hooks | Via `hooks/hooks.json` | `hooks/scripts/adlc-*.py` | N/A |
 | Settings | `settings.json` (default agent) | `settings.json` entries | N/A |
@@ -118,12 +118,12 @@ Plugin installation is self-contained — no files are copied to `~/.claude/`. T
 
 ## Quick start
 
-### 1. Build and deploy (`/developing-agentforce`)
+### 1. Build and deploy (`/agentforce-generate`)
 
 This single skill handles the full development workflow — authoring, discovery, scaffolding, and deployment:
 
 ```
-/developing-agentforce
+/agentforce-generate
 
 Build a service agent that helps customers check order status,
 request returns, and track shipments. It should verify identity
@@ -138,10 +138,10 @@ The skill will:
 
 Each phase can also be triggered individually (e.g., "just discover targets for OrderService.agent").
 
-### 2. Test the agent (`/testing-agentforce`)
+### 2. Test the agent (`/agentforce-test`)
 
 ```
-/testing-agentforce
+/agentforce-test
 
 Smoke test OrderService against my-org with these utterances:
 - "Where is my order #12345?"
@@ -151,10 +151,10 @@ Smoke test OrderService against my-org with these utterances:
 
 Runs preview sessions, analyzes traces, and reports topic routing accuracy and action success rates. Also supports batch testing via Testing Center and individual action execution.
 
-### 3. Optimize from production data (`/observing-agentforce`)
+### 3. Optimize from production data (`/agentforce-observe`)
 
 ```
-/observing-agentforce
+/agentforce-observe
 
 Analyze the last 50 sessions for OrderService on my-org.
 Find routing failures and suggest improvements.
@@ -168,9 +168,9 @@ Extracts STDM session traces from Data Cloud, identifies patterns (wrong topic, 
 
 | Skill | Description | Covers |
 |-------|-------------|--------|
-| `/developing-agentforce` | Build, review, discover, scaffold, deploy, and ensure safety of Agentforce agents | Author, discover, scaffold, deploy, safety review, feedback |
-| `/testing-agentforce` | Test Agentforce agents via preview, batch testing, and individual action execution | Preview, batch test, action execution |
-| `/observing-agentforce` | Analyze session traces from Data Cloud, reproduce issues, and improve the .agent file | STDM analysis, reproduce, fix loop |
+| `/agentforce-generate` | Build, review, discover, scaffold, deploy, and ensure safety of Agentforce agents | Author, discover, scaffold, deploy, safety review, feedback |
+| `/agentforce-test` | Test Agentforce agents via preview, batch testing, and individual action execution | Preview, batch test, action execution |
+| `/agentforce-observe` | Analyze session traces from Data Cloud, reproduce issues, and improve the .agent file | STDM analysis, reproduce, fix loop |
 
 ### Backward compatibility
 
@@ -178,15 +178,20 @@ Old skill names still work as aliases:
 
 | Old Command | Maps To |
 |---|---|
-| `/adlc-author` | `/developing-agentforce` |
-| `/adlc-discover` | `/developing-agentforce` |
-| `/adlc-scaffold` | `/developing-agentforce` |
-| `/adlc-deploy` | `/developing-agentforce` |
-| `/adlc-safety` | `/developing-agentforce` |
-| `/adlc-feedback` | `/developing-agentforce` |
-| `/adlc-test` | `/testing-agentforce` |
-| `/adlc-run` | `/testing-agentforce` |
-| `/adlc-optimize` | `/observing-agentforce` |
+| `/developing-agentforce` | `/agentforce-generate` |
+| `/testing-agentforce` | `/agentforce-test` |
+| `/observing-agentforce` | `/agentforce-observe` |
+| `/securing-agentforce` | `/agentforce-secure` |
+| `/adlc-author` | `/agentforce-generate` |
+| `/adlc-discover` | `/agentforce-generate` |
+| `/adlc-scaffold` | `/agentforce-generate` |
+| `/adlc-deploy` | `/agentforce-generate` |
+| `/adlc-safety` | `/agentforce-generate` |
+| `/adlc-feedback` | `/agentforce-generate` |
+| `/adlc-test` | `/agentforce-test` |
+| `/adlc-run` | `/agentforce-test` |
+| `/adlc-optimize` | `/agentforce-observe` |
+| `/adlc-security` | `/agentforce-secure` |
 
 ## Safety & Responsible AI
 
@@ -194,7 +199,7 @@ Safety is integrated across the full ADLC lifecycle, not bolted on as an afterth
 
 ### How it works
 
-The safety review (Section 15 of `/developing-agentforce`) uses Claude's reasoning to evaluate agents against 7 categories:
+The safety review (Section 15 of `/agentforce-generate`) uses Claude's reasoning to evaluate agents against 7 categories:
 
 | Category | What it catches |
 |----------|----------------|
@@ -210,10 +215,10 @@ The safety review (Section 15 of `/developing-agentforce`) uses Claude's reasoni
 
 | Lifecycle phase | Integration point |
 |-----------------|-------------------|
-| **Author** (`/developing-agentforce`) | Phase 0: pre-authoring safety gate. Phase 5: safety scoring (15 of 100 points) |
-| **Deploy** (`/developing-agentforce`) | Phase 0: safety gate before publishing to any org |
-| **Test** (`/testing-agentforce`) | Auto-generates adversarial safety probe utterances for every test run |
-| **Optimize** (`/observing-agentforce`) | Flags unsafe agent behavior in session traces (prompt leakage, injection compliance, etc.) |
+| **Author** (`/agentforce-generate`) | Phase 0: pre-authoring safety gate. Phase 5: safety scoring (15 of 100 points) |
+| **Deploy** (`/agentforce-generate`) | Phase 0: safety gate before publishing to any org |
+| **Test** (`/agentforce-test`) | Auto-generates adversarial safety probe utterances for every test run |
+| **Optimize** (`/agentforce-observe`) | Flags unsafe agent behavior in session traces (prompt leakage, injection compliance, etc.) |
 | **Every `.agent` write** | PostToolUse hook prompts for safety review |
 
 ### Why LLM-driven, not regex
@@ -244,9 +249,9 @@ agentforce-adlc/
 │   ├── adlc-engineer.md       # Platform engineer (discover/scaffold/deploy)
 │   └── adlc-qa.md             # Testing and optimization specialist
 ├── skills/              # Claude Code skills (3 consolidated, agentskills.io standard)
-│   ├── developing-agentforce/   # Author + discover + scaffold + deploy + safety + feedback
-│   ├── testing-agentforce/      # Preview testing + batch testing + action execution
-│   └── observing-agentforce/    # STDM trace analysis + fix loop
+│   ├── agentforce-generate/   # Author + discover + scaffold + deploy + safety + feedback
+│   ├── agentforce-test/      # Preview testing + batch testing + action execution
+│   └── agentforce-observe/    # STDM trace analysis + fix loop
 ├── hooks/               # Plugin hook definitions
 │   └── hooks.json           # PreToolUse/PostToolUse hook config
 ├── shared/              # Cross-skill shared code

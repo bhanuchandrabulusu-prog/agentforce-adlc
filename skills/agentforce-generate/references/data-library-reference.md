@@ -288,7 +288,7 @@ sf agent adl list --target-org "$TARGET_ORG" --json
 
   A. Trigger Data Cloud provisioning now — I'll deploy CustomerDataPlatformSettings
      and have you click "Get Started" on the Setup page. Provisioning runs in the
-     background. We'll skip ADL on this pass and you can re-run /developing-agentforce
+     background. We'll skip ADL on this pass and you can re-run /agentforce-generate
      to add grounding once it's live.
   B. Skip knowledge grounding — the agent will be authored without an ADL. You can
      add it later by re-running this workflow.
@@ -309,7 +309,7 @@ sf agent adl list --target-org "$TARGET_ORG" --json
        ```text
        👤 I've opened the Data Cloud setup page. Click the "Get Started" button.
           Provisioning runs async (~30 min – 2 hr). When it's live, re-run
-          /developing-agentforce to add knowledge grounding.
+          /agentforce-generate to add knowledge grounding.
        ```
     5. **Exit the ADL flow.** Tell the parent skill to author the agent without a `knowledge:` block on this pass.
 

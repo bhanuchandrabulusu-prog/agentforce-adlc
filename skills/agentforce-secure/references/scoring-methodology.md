@@ -75,4 +75,4 @@ When reporting quick-mode results, always note: "Quick scan — run full assessm
 | B | Deploy with enhanced monitoring. Plan remediation for warnings. |
 | C | Remediate before production. May deploy to sandbox for further testing. |
 | D | Significant remediation required. Do not deploy. |
-| F | Fundamental security issues. Review agent design. Consider safety review via /developing-agentforce Section 15. |
+| F | Fundamental security issues. Review agent design. Consider safety review via /agentforce-generate Section 15. |

@@ -101,13 +101,13 @@ jobs:
           path: test-results/
 ```
 
-## Cross-Skill Integration (/observing-agentforce)
+## Cross-Skill Integration (/agentforce-observe)
 
-The /observing-agentforce skill creates test cases during its Phase 3.7 after fixing issues found through STDM session analysis. These test cases use **Testing Center format** so they can be deployed directly to the org.
+The /agentforce-observe skill creates test cases during its Phase 3.7 after fixing issues found through STDM session analysis. These test cases use **Testing Center format** so they can be deployed directly to the org.
 
 ### Test Case Convention
 
-Test cases from /observing-agentforce follow Testing Center YAML format:
+Test cases from /agentforce-observe follow Testing Center YAML format:
 
 ```yaml
 # tests/<AgentApiName>-regression.yaml
@@ -129,7 +129,7 @@ testCases:
 
 ### Deploying Cross-Skill Tests
 
-When /observing-agentforce generates test cases, deploy them using Mode B:
+When /agentforce-observe generates test cases, deploy them using Mode B:
 
 ```bash
 # Deploy the regression test suite
@@ -153,8 +153,8 @@ sf agent test run --json \
 <project-root>/
   tests/
     <AgentApiName>-testing-center.yaml  # Full smoke suite (Mode B -- Testing Center)
-    <AgentApiName>-regression.yaml      # Regression tests from /observing-agentforce (Mode B)
+    <AgentApiName>-regression.yaml      # Regression tests from /agentforce-observe (Mode B)
     <AgentApiName>-smoke.yaml           # Ad-hoc smoke tests (Mode A -- preview only)
 ```
 
-Both this skill and /observing-agentforce write to the `tests/` directory using the agent's API name as prefix. Testing Center files (`-testing-center.yaml`, `-regression.yaml`) use the `name/subjectType/subjectName/testCases` format.
+Both this skill and /agentforce-observe write to the `tests/` directory using the agent's API name as prefix. Testing Center files (`-testing-center.yaml`, `-regression.yaml`) use the `name/subjectType/subjectName/testCases` format.

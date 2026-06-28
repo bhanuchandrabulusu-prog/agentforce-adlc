@@ -8,7 +8,7 @@ Deep security and safety analysis of `.agent` files using LLM reasoning -- catch
 
 - **Automatically during authoring** -- Phase 0 (pre-authoring gate) and Phase 5 (review)
 - **Automatically before deployment** -- Phase 0 of Deploy
-- **On demand** via `/developing-agentforce safety review <path/to/file.agent>`
+- **On demand** via `/agentforce-generate safety review <path/to/file.agent>`
 - **When the PostToolUse hook flags warnings**
 
 ## Review Categories
@@ -141,6 +141,6 @@ These are NOT safety violations:
 |-------|-------------------|
 | Authoring | Phase 0 (pre-gate) + Phase 5 (review, 15 points of rubric) |
 | Deploy | Pre-publish safety check |
-| /testing-agentforce | Adversarial test utterance generation (5 safety probes) |
-| /securing-agentforce | Full OWASP LLM Top 10 runtime security assessment (57 tests, 7 categories, A–F grading) |
-| /observing-agentforce | Session trace safety flagging |
+| /agentforce-test | Adversarial test utterance generation (5 safety probes) |
+| /agentforce-secure | Full OWASP LLM Top 10 runtime security assessment (57 tests, 7 categories, A–F grading) |
+| /agentforce-observe | Session trace safety flagging |
