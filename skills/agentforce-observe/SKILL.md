@@ -1,6 +1,6 @@
 ---
-name: observing-agentforce
-description: "Analyze production Agentforce agent behavior using session traces and Data Cloud. TRIGGER when: user queries STDM session data or Data Cloud trace records; investigates production agent failures, regressions, or performance issues; asks about session traces, conversation logs, or agent metrics; wants to reproduce a reported production issue in preview; runs findSessions or trace analysis queries. DO NOT TRIGGER when: user creates, modifies, or debugs .agent files during development (use developing-agentforce); writes or runs test specs (use testing-agentforce); uses sf agent preview for local development iteration; deploys or publishes agents."
+name: agentforce-observe
+description: "Analyze production Agentforce agent behavior using session traces and Data Cloud. TRIGGER when: user queries STDM session data or Data Cloud trace records; investigates production agent failures, regressions, or performance issues; asks about session traces, conversation logs, or agent metrics; wants to reproduce a reported production issue in preview; runs findSessions or trace analysis queries. DO NOT TRIGGER when: user creates, modifies, or debugs .agent files during development (use agentforce-generate); writes or runs test specs (use agentforce-test); uses sf agent preview for local development iteration; deploys or publishes agents."
 allowed-tools: Bash Read Write Edit Glob Grep
 metadata:
   version: "0.6"
@@ -346,7 +346,7 @@ Run Phase 2 scenarios post-fix. Check trace for correct routing, grounding, tool
 
 ### 3.7b Safety re-verification (required)
 
-Re-run safety review (`Section 15 of /developing-agentforce`) on the modified `.agent` file. Revert any changes that introduce BLOCK findings.
+Re-run safety review (`Section 15 of /agentforce-generate`) on the modified `.agent` file. Revert any changes that introduce BLOCK findings.
 
 ### 3.8 Update Testing Center test cases
 

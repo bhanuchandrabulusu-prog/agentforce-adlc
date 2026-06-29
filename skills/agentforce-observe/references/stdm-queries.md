@@ -24,17 +24,17 @@ Methods:
 mkdir -p <project-root>/force-app/main/default/classes
 
 # Copy from the installed skill location
-cp skills/observing-agentforce/apex/AgentforceOptimizeService.cls \
+cp skills/agentforce-observe/apex/AgentforceOptimizeService.cls \
    <project-root>/force-app/main/default/classes/
-cp skills/observing-agentforce/apex/AgentforceOptimizeService.cls-meta.xml \
+cp skills/agentforce-observe/apex/AgentforceOptimizeService.cls-meta.xml \
    <project-root>/force-app/main/default/classes/
 ```
 
 If the skill is installed globally via the installer, use the installed path:
 ```bash
-cp ~/.claude/skills/observing-agentforce/apex/AgentforceOptimizeService.cls \
+cp ~/.claude/skills/agentforce-observe/apex/AgentforceOptimizeService.cls \
    <project-root>/force-app/main/default/classes/
-cp ~/.claude/skills/observing-agentforce/apex/AgentforceOptimizeService.cls-meta.xml \
+cp ~/.claude/skills/agentforce-observe/apex/AgentforceOptimizeService.cls-meta.xml \
    <project-root>/force-app/main/default/classes/
 ```
 

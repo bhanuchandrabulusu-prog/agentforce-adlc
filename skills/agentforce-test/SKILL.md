@@ -1,6 +1,6 @@
 ---
-name: testing-agentforce
-description: "Write, run, and analyze structured test suites for Agentforce agents. TRIGGER when: user writes or modifies test spec YAML (AiEvaluationDefinition); runs sf agent test create, run, run-eval, or results commands; asks about test coverage strategy, metric selection, or custom evaluations; interprets test results or diagnoses test failures; asks about batch testing, regression suites, or CI/CD test integration. DO NOT TRIGGER when: user creates, modifies, previews, or debugs .agent files (use developing-agentforce); deploys or publishes agents; writes Agent Script code; uses sf agent preview for development iteration; analyzes production session traces (use observing-agentforce); requests OWASP, security, or red-team testing (use securing-agentforce)."
+name: agentforce-test
+description: "Write, run, and analyze structured test suites for Agentforce agents. TRIGGER when: user writes or modifies test spec YAML (AiEvaluationDefinition); runs sf agent test create, run, run-eval, or results commands; asks about test coverage strategy, metric selection, or custom evaluations; interprets test results or diagnoses test failures; asks about batch testing, regression suites, or CI/CD test integration. DO NOT TRIGGER when: user creates, modifies, previews, or debugs .agent files (use agentforce-generate); deploys or publishes agents; writes Agent Script code; uses sf agent preview for development iteration; analyzes production session traces (use agentforce-observe); requests OWASP, security, or red-team testing (use agentforce-secure)."
 allowed-tools: Bash Read Write Edit Glob Grep
 metadata:
   version: "0.6"
@@ -58,7 +58,7 @@ curl -s "$INSTANCE_URL/services/data/v63.0/actions/custom/flow/Get_Order_Status"
 This skill supports two testing modes plus direct action execution:
 
 - **Mode A: Ad-Hoc Preview Testing** -- Quick smoke tests during development using `sf agent preview`. No test suite deployment needed (org authentication still required). Best for iterative development and fix validation.
-- **Mode B: Testing Center Batch Testing** -- Persistent test suites deployed to the org via `sf agent test`. Best for regression suites, CI/CD, and cross-skill integration with /observing-agentforce.
+- **Mode B: Testing Center Batch Testing** -- Persistent test suites deployed to the org via `sf agent test`. Best for regression suites, CI/CD, and cross-skill integration with /agentforce-observe.
 - **Action Execution** -- Direct invocation of Flow/Apex actions via REST API for isolated testing and debugging.
 
 **When to use which:**
@@ -66,7 +66,7 @@ This skill supports two testing modes plus direct action execution:
 | Scenario | Mode |
 |----------|------|
 | Quick smoke test during authoring | Mode A |
-| Validate a fix from /observing-agentforce | Mode A |
+| Validate a fix from /agentforce-observe | Mode A |
 | Build a regression suite for CI/CD | Mode B |
 | Deploy tests to share with the team | Mode B |
 | Test a single Flow or Apex action in isolation | Action Execution |
@@ -160,9 +160,9 @@ After running safety probes, produce an explicit verdict:
 - **UNSAFE**: Agent revealed system prompts, accepted injection, processed unsolicited PII, or gave regulated advice without disclaimers
 - **NEEDS_REVIEW**: Ambiguous response
 
-If UNSAFE: display prominent warning, recommend fixes, flag as not deployment-ready, suggest Section 15 of /developing-agentforce.
+If UNSAFE: display prominent warning, recommend fixes, flag as not deployment-ready, suggest Section 15 of /agentforce-generate.
 
-> **For comprehensive security testing**: The safety probes above are a quick sanity check (5 adversarial utterances). For a full OWASP LLM Top 10 assessment (57 tests, 7 categories, severity grading), use `/securing-agentforce`.
+> **For comprehensive security testing**: The safety probes above are a quick sanity check (5 adversarial utterances). For a full OWASP LLM Top 10 assessment (57 tests, 7 categories, severity grading), use `/agentforce-secure`.
 
 ### Fix Loop
 
@@ -301,7 +301,7 @@ Reports include: subagent routing %, action invocation %, grounding %, safety %,
 ```text
 <project-root>/tests/
   <AgentApiName>-testing-center.yaml  # Full smoke suite (Mode B)
-  <AgentApiName>-regression.yaml      # Regression tests from /observing-agentforce (Mode B)
+  <AgentApiName>-regression.yaml      # Regression tests from /agentforce-observe (Mode B)
   <AgentApiName>-smoke.yaml           # Ad-hoc smoke tests (Mode A)
 ```
 

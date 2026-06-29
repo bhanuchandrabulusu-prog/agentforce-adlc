@@ -1,6 +1,6 @@
 ---
-name: securing-agentforce
-description: "Run OWASP LLM Top 10 security assessments against live Agentforce agents. TRIGGER when: user asks for security testing, OWASP scan, red-teaming, penetration testing, security grade, vulnerability assessment, prompt injection test, data leakage test, excessive agency test, security posture check, or hardening recommendations. DO NOT TRIGGER when: user runs functional smoke tests or batch tests (use testing-agentforce); performs static safety review of .agent file content (use developing-agentforce Section 15); analyzes production session traces (use observing-agentforce); writes or modifies .agent files."
+name: agentforce-secure
+description: "Run OWASP LLM Top 10 security assessments against live Agentforce agents. TRIGGER when: user asks for security testing, OWASP scan, red-teaming, penetration testing, security grade, vulnerability assessment, prompt injection test, data leakage test, excessive agency test, security posture check, or hardening recommendations. DO NOT TRIGGER when: user runs functional smoke tests or batch tests (use agentforce-test); performs static safety review of .agent file content (use agentforce-generate Section 15); analyzes production session traces (use agentforce-observe); writes or modifies .agent files."
 allowed-tools: Bash Read Write Edit Glob Grep
 metadata:
   version: "0.1"
@@ -62,16 +62,16 @@ A skill-level workflow (not a runner CLI flag): Phase 2 retrieves the agent's co
 
 ### Critical Rules
 
-1. **DO NOT write your own test runner.** Use `skills/securing-agentforce/scripts/security_runner.py` from this plugin. It already handles session management, YAML loading, multi-turn tests, control-char stripping, and rate limiting.
-2. **DO NOT write your own report generator.** Use `skills/securing-agentforce/scripts/security_report.py` from this plugin.
-3. **DO NOT write your own scoring script.** Use `skills/securing-agentforce/scripts/security_scoring.py` from this plugin.
+1. **DO NOT write your own test runner.** Use `skills/agentforce-secure/scripts/security_runner.py` from this plugin. It already handles session management, YAML loading, multi-turn tests, control-char stripping, and rate limiting.
+2. **DO NOT write your own report generator.** Use `skills/agentforce-secure/scripts/security_report.py` from this plugin.
+3. **DO NOT write your own scoring script.** Use `skills/agentforce-secure/scripts/security_scoring.py` from this plugin.
 4. **All evaluation is LLM-as-judge.** Read the runner output and judge each response yourself. There is no pattern-matching step.
 
 ### Gathering Input
 
 When the skill loads, gather required details from the user. Follow these constraints strictly:
 
-1. If the user provided org, agent, and mode in their invocation (e.g., `/securing-agentforce myorg --agent MyAgent --mode quick`), skip questions and proceed directly.
+1. If the user provided org, agent, and mode in their invocation (e.g., `/agentforce-secure myorg --agent MyAgent --mode quick`), skip questions and proceed directly.
 2. If details are missing, ask for them using plain text questions — do NOT use structured tool pickers for org alias or agent name (these are freeform text, not selectable options).
 3. For mode selection, you may use a structured picker with these options: quick, full, full+dynamic (the user can always type a custom response).
 4. Do NOT present OWASP categories as selectable options (there are 7, which exceeds picker limits). Default to all 7 and let users specify a subset via text.
@@ -118,7 +118,7 @@ sf agent preview end --session-id <ID> --authoring-bundle <AGENT_BUNDLE_NAME> -o
 
 1. Determine mode (quick or full) from user input (default: full)
 2. Determine categories — all 7 by default, or user-specified subset
-3. Read the relevant YAML payload files from `skills/securing-agentforce/assets/payloads/`:
+3. Read the relevant YAML payload files from `skills/agentforce-secure/assets/payloads/`:
    - `prompt-injection.yaml`
    - `sensitive-info-disclosure.yaml`
    - `output-handling.yaml`
@@ -170,14 +170,14 @@ sf agent preview end --session-id <ID> --authoring-bundle <AGENT_BUNDLE_NAME> -o
 
 ### Phase 3: Execute Tests
 
-> **IMPORTANT: DO NOT write your own runner script.** A complete, tested runner already exists at `skills/securing-agentforce/scripts/security_runner.py` in the plugin directory. Use it directly. Do NOT create files in `/tmp/`, do NOT rewrite the runner logic, do NOT inline the test loop. Just run the existing script with the correct arguments.
+> **IMPORTANT: DO NOT write your own runner script.** A complete, tested runner already exists at `skills/agentforce-secure/scripts/security_runner.py` in the plugin directory. Use it directly. Do NOT create files in `/tmp/`, do NOT rewrite the runner logic, do NOT inline the test loop. Just run the existing script with the correct arguments.
 
 Locate the runner script (it ships with this plugin):
 ```bash
 # Find the plugin's scripts directory
-PLUGIN_DIR=$(find ~/.claude /Users -path "*/agentforce-adlc/skills/securing-agentforce/scripts/security_runner.py" -print -quit 2>/dev/null | xargs dirname)
+PLUGIN_DIR=$(find ~/.claude /Users -path "*/agentforce-adlc/skills/agentforce-secure/scripts/security_runner.py" -print -quit 2>/dev/null | xargs dirname)
 # Or if running from the plugin repo directly:
-PLUGIN_DIR="skills/securing-agentforce/scripts"
+PLUGIN_DIR="skills/agentforce-secure/scripts"
 ```
 
 Run it:
@@ -196,7 +196,7 @@ Optional flags:
 - `--no-live` — disable live actions (use mocked actions instead of real execution)
 
 The runner:
-1. Loads payloads from `skills/securing-agentforce/assets/payloads/*.yaml`
+1. Loads payloads from `skills/agentforce-secure/assets/payloads/*.yaml`
 2. Starts a fresh preview session per test (isolates context)
 3. Sends all turns for multi-turn tests sequentially in the same session
 4. Strips control characters from sf CLI output before JSON parsing (known CLI quirk)
@@ -306,7 +306,7 @@ Report: /tmp/security_report.html (open in browser → Print to PDF)
 ```
 
 Then:
-- If grade is C or below: recommend running `/developing-agentforce` Section 15 safety review for remediation
+- If grade is C or below: recommend running `/agentforce-generate` Section 15 safety review for remediation
 - If specific categories fail: provide targeted remediation from `references/remediation-guide.md`
 - Offer to run again after fixes are applied
 
@@ -375,7 +375,7 @@ Dynamic tests are generated in **Phase 2** by retrieving the agent's configurati
 When failures are identified:
 
 1. Map each failure to its remediation (from payload YAML `remediation` field)
-2. Suggest specific `.agent` file edits (reference `/developing-agentforce` for syntax)
+2. Suggest specific `.agent` file edits (reference `/agentforce-generate` for syntax)
 3. After user applies fixes, offer to re-run the failed category only:
    - End current session, start new one
    - Re-run only the failed tests
@@ -385,9 +385,9 @@ When failures are identified:
 
 ## Cross-References
 
-- **Static safety review**: `/developing-agentforce` Section 15 reviews `.agent` file content for safety patterns. This skill tests runtime behavior against live payloads.
-- **Functional testing**: `/testing-agentforce` validates correctness (right topic, right action). This skill validates security (resists attacks).
-- **Production monitoring**: `/observing-agentforce` analyzes real session traces. This skill uses synthetic adversarial sessions.
+- **Static safety review**: `/agentforce-generate` Section 15 reviews `.agent` file content for safety patterns. This skill tests runtime behavior against live payloads.
+- **Functional testing**: `/agentforce-test` validates correctness (right topic, right action). This skill validates security (resists attacks).
+- **Production monitoring**: `/agentforce-observe` analyzes real session traces. This skill uses synthetic adversarial sessions.
 
 ---
 

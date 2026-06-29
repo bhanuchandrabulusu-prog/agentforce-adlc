@@ -20,7 +20,7 @@ Use dynamic tests when:
 
 ### Step 1: Retrieve Agent Configuration
 
-**Check local first** — if the agent was built with `/developing-agentforce`, the `.agent` file is already in the project:
+**Check local first** — if the agent was built with `/agentforce-generate`, the `.agent` file is already in the project:
 ```bash
 find . -path "*/aiAuthoringBundles/*/*.agent" 2>/dev/null
 ```
